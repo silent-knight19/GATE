@@ -23,6 +23,8 @@ export default function SubjectsPage() {
 
   return (
     <div className="mx-auto max-w-5xl space-y-5 p-4 md:p-6">
+      <title>GATE CSE 2027 Subjects List & Individual Progress</title>
+      <meta name="description" content="Explore subject-wise syllabus progress, average mark weights, and topic checklists for GATE 2027 Computer Science & Information Technology." />
       <div className="flex items-baseline justify-between gap-4">
         <div>
           <h1 className="text-lg font-semibold text-foreground">Subjects</h1>

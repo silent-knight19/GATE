@@ -32,6 +32,8 @@ export default function SyllabusPage() {
 
   return (
     <div className="mx-auto max-w-5xl space-y-5 p-4 md:p-6">
+      <title>GATE CSE 2027 Syllabus Tracker & Completion Status</title>
+      <meta name="description" content="Detailed topic-by-topic syllabus breakdown for GATE CSE 2027. Track your progress, review key topics, and plan your study milestones." />
       <div className="flex items-baseline justify-between gap-4">
         <div>
           <h1 className="text-lg font-semibold text-foreground">

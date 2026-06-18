@@ -29,6 +29,8 @@ export default function PredictorPage() {
 
   return (
     <div className="mx-auto max-w-5xl space-y-5 p-4 md:p-6">
+      <title>GATE 2027 Rank & College Predictor | GATE CSE</title>
+      <meta name="description" content="Calculate your GATE score, predict your All India Rank (AIR), and find matching IITs, NITs, and IIITs based on historical GATE cutoff trends." />
       <div>
         <h1 className="text-lg font-semibold text-foreground">Predictors</h1>
         <p className="text-xs text-muted-foreground">Marks conversion, college prediction & target tracking tools</p>

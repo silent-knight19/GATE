@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import MetricsCards from "@/components/dashboard/metrics-cards"
 import ReadinessScore from "@/components/dashboard/readiness-score"
 import PerformanceChart from "@/components/dashboard/performance-chart"
@@ -7,6 +8,12 @@ import ScoreDistribution from "@/components/analytics/score-distribution"
 import ErrorAnalysis from "@/components/analytics/error-analysis"
 import ConsistencyHeatmap from "@/components/analytics/consistency-heatmap"
 import BurnoutIndicator from "@/components/analytics/burnout-indicator"
+
+export const metadata: Metadata = {
+  title: "Analytics & Readiness Insights | GATE CSE 2027",
+  description: "Detailed analytics of your GATE 2027 preparation. Monitor readiness scores, study consistency, error distribution, subject weaknesses, and performance charts.",
+  keywords: ["GATE analytics", "GATE 2027 readiness score", "GATE study heatmap", "weak subjects GATE"],
+}
 
 export default function AnalyticsPage() {
   return (

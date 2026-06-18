@@ -224,6 +224,8 @@ export default function CounsellingPage() {
 
   return (
     <div className="mx-auto max-w-4xl space-y-5 p-4 md:p-6">
+      <title>GATE 2027 COAP & CCMT Counselling Guide | GATE CSE</title>
+      <meta name="description" content="Step-by-step admission timelines and counselling guide for COAP (IITs/IISc) and CCMT (NITs/IIITs) based on GATE 2027 scores." />
       <div>
         <h1 className="text-lg font-semibold text-foreground">Counselling Guide</h1>
         <p className="text-xs text-muted-foreground">COAP, CCMT, college strategy & document preparation</p>

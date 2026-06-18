@@ -57,6 +57,8 @@ export default function ConverterPage() {
 
   return (
     <div className="min-h-screen bg-background p-4 md:p-6 space-y-6">
+      <title>GATE CSE Marks to Score & Rank Calculator | GATE 2027</title>
+      <meta name="description" content="Convert your expected GATE 2027 marks to GATE score and estimate your All India Rank (AIR). See the required marks to reach a target rank." />
       <div>
         <h1 className="text-2xl font-bold">Converter</h1>
         <p className="text-sm text-muted-foreground">GATE CS score and estimated AIR planning tools</p>

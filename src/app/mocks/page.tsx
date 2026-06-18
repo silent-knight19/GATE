@@ -145,6 +145,8 @@ export default function MocksPage() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-5 p-4 md:p-6">
+      <title>Mock Test Analytics & Error Analysis | GATE CSE 2027</title>
+      <meta name="description" content="Log and analyze your GATE 2027 mock test scores. Visualize performance trends, subject-wise weakness radar charts, and categorized error profiles." />
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-lg font-semibold text-foreground">

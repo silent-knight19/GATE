@@ -104,6 +104,8 @@ export default function ProgressPage() {
 
   return (
     <div className="min-h-screen bg-background p-4 md:p-6 space-y-6">
+      <title>Progress Hub & Daily Study Tracker | GATE CSE 2027</title>
+      <meta name="description" content="View overall and subject-wise completion stats, daily study logs, streaks, and mock test score averages for GATE CSE 2027." />
       {/* Header */}
       <div className="space-y-1">
         <h1 className="text-2xl font-bold">Progress Hub</h1>

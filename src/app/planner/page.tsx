@@ -126,6 +126,8 @@ export default function PlannerPage() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-5 p-4 md:p-6">
+      <title>GATE CSE 2027 Study Planner & Task Scheduler</title>
+      <meta name="description" content="Generate adaptive daily study plans, monitor preparation velocity, customize strong and weak subjects, and view your weekly GATE study calendar." />
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-lg font-semibold text-foreground">

@@ -169,6 +169,8 @@ export default function WeightagePage() {
 
   return (
     <div className="min-h-screen bg-background p-4 md:p-6 space-y-6">
+      <title>GATE CSE Subject Weightage Analysis (2021-2025) | GATE 2027</title>
+      <meta name="description" content="Detailed 5-year average weightage and marks distribution analysis for GATE Computer Science & IT. Compare subject trends and find high-scoring topics." />
       <div>
         <h1 className="text-2xl font-bold">Weightage Analysis</h1>
         <p className="text-sm text-muted-foreground">5-year marks distribution (2021–2025)</p>

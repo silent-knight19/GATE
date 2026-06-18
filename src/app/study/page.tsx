@@ -82,6 +82,8 @@ export default function StudyPage() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-5 p-4 md:p-6">
+      <title>GATE CSE 2027 Study Timer & Activity Logger</title>
+      <meta name="description" content="Log daily study sessions, track subject-wise study hours, maintain study streaks, and build consistent preparation habits for GATE CSE 2027." />
       <div>
         <h1 className="text-lg font-semibold text-foreground">Study Logger</h1>
         <p className="text-xs text-muted-foreground">

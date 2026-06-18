@@ -278,6 +278,8 @@ export default function PsuPage() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-5 p-4 md:p-6">
+      <title>GATE 2027 PSU Recruitment Tracker & Cutoffs | GATE CSE</title>
+      <meta name="description" content="Track PSU job opportunities recruiting through GATE 2027. Review expected GATE cutoffs, eligibility criteria, recruitment timelines, and packages." />
       <div>
         <h1 className="text-lg font-semibold text-foreground">PSU Recruitment Tracker</h1>
         <p className="text-xs text-muted-foreground">Track PSU recruitments through GATE 2027</p>
