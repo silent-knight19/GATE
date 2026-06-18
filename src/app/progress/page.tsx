@@ -13,7 +13,7 @@ import {
   Line,
 } from 'recharts'
 import { syllabus } from '@/lib/data/syllabus'
-import { subjectStats, EXAM_INFO } from '@/lib/data/subject-stats'
+import { subjectStats, EXAM_INFO, getShortSubjectName } from '@/lib/data/subject-stats'
 import { useAppStore } from '@/lib/store'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -213,7 +213,7 @@ export default function ProgressPage() {
                       <div className="flex items-center gap-2 min-w-0">
                         <div className="size-2.5 shrink-0 rounded-full" style={{ backgroundColor: sub.color }} />
                         <Link href={`/subjects/${sub.id}`} className="text-sm font-medium truncate hover:underline" onClick={(e) => e.stopPropagation()}>
-                          {sub.name}
+                          {getShortSubjectName(sub.name)}
                         </Link>
                         {p.stats && (
                           <span className="text-[10px] text-muted-foreground shrink-0">~{p.stats.avgMarks} marks</span>

@@ -2,6 +2,8 @@ import { notFound } from "next/navigation"
 import { syllabus } from "@/lib/data/syllabus"
 import { SubjectDetail } from "./subject-detail"
 
+export const dynamicParams = false
+
 export async function generateStaticParams() {
   return syllabus.map((s) => ({ id: s.id }))
 }

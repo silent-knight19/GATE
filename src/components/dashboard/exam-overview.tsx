@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react"
 import { BookOpen, GraduationCap, Calendar, Clock, BarChart3, ExternalLink } from "lucide-react"
-import { subjectStats, EXAM_INFO } from "@/lib/data/subject-stats"
+import { subjectStats, EXAM_INFO, getShortSubjectName } from "@/lib/data/subject-stats"
 import Link from "next/link"
 
 export default function ExamOverview() {
@@ -28,7 +28,7 @@ export default function ExamOverview() {
           <h2 className="text-sm font-semibold">GATE CSE 2027 — Exam Overview</h2>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           <div>
             <p className="text-xs text-muted-foreground">Total Marks</p>
             <p className="text-lg font-bold tabular-nums">{EXAM_INFO.totalMarks}</p>
@@ -45,28 +45,6 @@ export default function ExamOverview() {
             <p className="text-xs text-muted-foreground">Exam Date</p>
             <p className="text-lg font-bold tabular-nums">Feb 6, 2027</p>
           </div>
-        </div>
-
-        <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-          <span className="rounded-full bg-indigo-500/10 px-2 py-1 text-indigo-500 font-medium">
-            GA: {EXAM_INFO.generalAptitudeMarks} marks
-          </span>
-          <span className="rounded-full bg-purple-500/10 px-2 py-1 text-purple-500 font-medium">
-            EM: {EXAM_INFO.engineeringMathematicsMarks} marks
-          </span>
-          <span className="rounded-full bg-blue-500/10 px-2 py-1 text-blue-500 font-medium">
-            Core: {EXAM_INFO.coreSubjectsMarks} marks
-          </span>
-          {EXAM_INFO.conductingInstitute && (
-            <span className="rounded-full bg-emerald-500/10 px-2 py-1 text-emerald-500 font-medium">
-              Conducted by {EXAM_INFO.conductingInstitute}
-            </span>
-          )}
-          {EXAM_INFO.questionTypes.map((qt) => (
-            <span key={qt} className="rounded-full bg-foreground/5 px-2 py-1">
-              {qt}
-            </span>
-          ))}
         </div>
       </div>
 
@@ -108,7 +86,7 @@ export default function ExamOverview() {
           {subjects.map((s) => (
             <div key={s.id} className="flex items-center gap-2">
               <Link href={`/subjects/${s.id}`} className="w-32 shrink-0 text-xs font-bold truncate hover:underline" style={{ color: s.color }}>
-                {s.name}
+                {getShortSubjectName(s.name)}
               </Link>
               <div className="flex-1 h-4 overflow-hidden rounded-full bg-secondary relative">
                 <div

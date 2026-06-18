@@ -247,3 +247,16 @@ export const EXAM_INFO = {
   examDate: 'February 7, 2027',
   conductingInstitute: 'IIT Roorkee',
 }
+
+export function getShortSubjectName(name: string): string {
+  const shortNames: Record<string, string> = {
+    'Engineering Mathematics': 'Engineering Math',
+    'Discrete Mathematics': 'Discrete Math',
+    'Computer Organization & Architecture': 'COA',
+    'Programming & Data Structures': 'Programming & DS',
+    'Theory of Computation': 'TOC',
+    'Databases (DBMS)': 'DBMS',
+  }
+  return shortNames[name] || name
+}
+

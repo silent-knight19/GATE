@@ -3,6 +3,7 @@
 import { Card } from "@/components/ui/card"
 import { useAppStore } from "@/lib/store"
 import { syllabus } from "@/lib/data/syllabus"
+import { getShortSubjectName } from "@/lib/data/subject-stats"
 import Link from "next/link"
 import { useEffect, useState } from "react"
 import {
@@ -251,7 +252,7 @@ export default function SyllabusOverview() {
                 />
                 <div className="space-y-1 text-center">
                   <p className="text-xs font-bold leading-tight text-foreground/90 line-clamp-2">
-                    {subject.name}
+                    {getShortSubjectName(subject.name)}
                   </p>
                   <p className="text-[10px] font-medium tabular-nums text-muted-foreground flex items-center justify-center gap-1">
                     <span>{subject.percent}%</span>
