@@ -16,31 +16,43 @@ import { Play, Pause, Square } from "lucide-react"
 export function StudyTimer() {
   const addLogEntry = useAppStore((s) => s.addLogEntry)
 
-  const [seconds, setSeconds] = useState(0)
+  const [elapsedMs, setElapsedMs] = useState(0)
   const [isRunning, setIsRunning] = useState(false)
   const [selectedSubjectId, setSelectedSubjectId] = useState("")
   const [selectedTopicId, setSelectedTopicId] = useState("")
 
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const startTimeRef = useRef<number | null>(null)
+  const accumulatedRef = useRef(0)
+  const frameRef = useRef<number | null>(null)
 
   const selectedSubject = syllabus.find((s) => s.id === selectedSubjectId)
   const topics = selectedSubject?.topics || []
 
+  const tick = useCallback(() => {
+    if (startTimeRef.current === null) return
+    const now = Date.now()
+    setElapsedMs(accumulatedRef.current + (now - startTimeRef.current))
+    frameRef.current = requestAnimationFrame(tick)
+  }, [])
+
   useEffect(() => {
     if (isRunning) {
-      intervalRef.current = setInterval(() => {
-        setSeconds((s) => s + 1)
-      }, 1000)
+      startTimeRef.current = Date.now()
+      frameRef.current = requestAnimationFrame(tick)
     } else {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current)
-        intervalRef.current = null
+      if (startTimeRef.current !== null) {
+        accumulatedRef.current += Date.now() - startTimeRef.current
+        startTimeRef.current = null
+      }
+      if (frameRef.current !== null) {
+        cancelAnimationFrame(frameRef.current)
+        frameRef.current = null
       }
     }
     return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current)
+      if (frameRef.current !== null) cancelAnimationFrame(frameRef.current)
     }
-  }, [isRunning])
+  }, [isRunning, tick])
 
   const handleStart = useCallback(() => {
     if (!selectedTopicId) return
@@ -53,7 +65,7 @@ export function StudyTimer() {
 
   const handleStop = useCallback(() => {
     setIsRunning(false)
-    const hours = Math.round((seconds / 60) * 10) / 10 / 60
+    const hours = Math.round((elapsedMs / 60000) * 10) / 10 / 60
     if (selectedTopicId && selectedSubjectId && hours > 0) {
       addLogEntry({
         subjectId: selectedSubjectId,
@@ -62,16 +74,19 @@ export function StudyTimer() {
         activityType: "study",
       })
     }
-    setSeconds(0)
-  }, [selectedTopicId, selectedSubjectId, seconds, addLogEntry])
+    setElapsedMs(0)
+    accumulatedRef.current = 0
+    startTimeRef.current = null
+  }, [selectedTopicId, selectedSubjectId, elapsedMs, addLogEntry])
 
-  const displayHours = Math.floor(seconds / 3600)
-  const displayMinutes = Math.floor((seconds % 3600) / 60)
-  const displaySecs = seconds % 60
+  const totalSeconds = Math.floor(elapsedMs / 1000)
+  const displayHours = Math.floor(totalSeconds / 3600)
+  const displayMinutes = Math.floor((totalSeconds % 3600) / 60)
+  const displaySecs = totalSeconds % 60
 
   const loggingHours =
-    seconds > 0
-      ? Math.round((seconds / 60) * 10) / 10 / 60
+    elapsedMs > 0
+      ? Math.round((elapsedMs / 60000) * 10) / 10 / 60
       : 0
 
   return (
@@ -138,16 +153,16 @@ export function StudyTimer() {
         <Button
           variant="secondary"
           onClick={handleStop}
-          disabled={seconds === 0}
+          disabled={elapsedMs === 0}
         >
           <Square className="size-4" />
           Stop & Log
         </Button>
       </div>
 
-      {seconds > 0 && (
+      {elapsedMs > 0 && (
         <p className="text-xs text-muted-foreground">
-          Logging: {loggingHours >= 1 ? loggingHours.toFixed(1) : `${Math.round(seconds / 60)} min`}
+          Logging: {loggingHours >= 1 ? loggingHours.toFixed(1) : `${Math.round(elapsedMs / 60000)} min`}
         </p>
       )}
     </div>
