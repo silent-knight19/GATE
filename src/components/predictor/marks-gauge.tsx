@@ -15,26 +15,22 @@ export function MarksGauge({ marks, showLabel = true }: { marks: number; showLab
   return (
     <div className="space-y-1.5">
       <div className="relative h-3 w-full rounded-full bg-muted overflow-hidden">
-        {(() => {
-          let prev = 0
-          return ZONES.map((z, i) => {
-            const w = ((z.max - prev) / 100) * 100
-            const el = (
-              <div
-                key={i}
-                className="absolute inset-y-0 transition-opacity duration-300 first:rounded-l-full last:rounded-r-full"
-                style={{
-                  left: `${prev}%`,
-                  width: `${w}%`,
-                  backgroundColor: z.color,
-                  opacity: pct >= prev ? (pct >= z.max ? 0.8 : 0.4) : 0.12,
-                }}
-              />
-            )
-            prev = z.max
-            return el
-          })
-        })()}
+        {ZONES.map((z, i) => {
+          const left = i === 0 ? 0 : ZONES[i - 1].max
+          const w = z.max - left
+          return (
+            <div
+              key={i}
+              className="absolute inset-y-0 transition-opacity duration-300 first:rounded-l-full last:rounded-r-full"
+              style={{
+                left: `${left}%`,
+                width: `${w}%`,
+                backgroundColor: z.color,
+                opacity: pct >= left ? (pct >= z.max ? 0.8 : 0.4) : 0.12,
+              }}
+            />
+          )
+        })}
         <div
           className="absolute top-1/2 -translate-y-1/2 size-3.5 rounded-full border-2 border-white bg-foreground shadow-md transition-all duration-300"
           style={{ left: `calc(${pct}% - 7px)` }}

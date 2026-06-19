@@ -35,7 +35,7 @@ const SUBJECT_LABELS: Record<string, string> = {
   "Computer Networks": "CN",
 }
 
-function CustomTooltip({ active, payload, label }: any) {
+function CustomTooltip({ active, payload }: { active?: boolean; payload?: { payload: { fullName: string; marks: number; maxPossible: number; pct: number } }[] }) {
   if (!active || !payload?.length) return null
   const d = payload[0].payload
   return (

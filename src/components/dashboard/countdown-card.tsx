@@ -23,12 +23,10 @@ export default function CountdownCard() {
   )
   const [elapsedPercent, setElapsedPercent] = useState(0)
   const [displayDays, setDisplayDays] = useState(0)
-  const [mounted, setMounted] = useState(false)
 
   const quote = quotes[new Date().getDate() % quotes.length]
 
   useEffect(() => {
-    setMounted(true)
     const start = new Date(2026, 0, 1).getTime()
     const exam = new Date(2027, 1, 6).getTime()
     const total = exam - start
@@ -47,7 +45,6 @@ export default function CountdownCard() {
   }, [])
 
   useEffect(() => {
-    if (!mounted) return
     const target = timeLeft.days
     const duration = 1200
     const steps = 40
@@ -59,7 +56,7 @@ export default function CountdownCard() {
       if (step >= steps) clearInterval(timer)
     }, duration / steps)
     return () => clearInterval(timer)
-  }, [mounted, timeLeft.days])
+  }, [timeLeft.days])
 
   const radius = 52
   const circumference = 2 * Math.PI * radius

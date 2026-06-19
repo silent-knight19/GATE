@@ -14,7 +14,7 @@ import {
   CartesianGrid,
 } from "recharts"
 
-function CustomTooltip({ active, payload, label }: any) {
+function CustomTooltip({ active, payload }: { active?: boolean; payload?: { payload: { subject: string; hours: number; sessions: number } }[] }) {
   if (!active || !payload?.length) return null
   const d = payload[0].payload
   return (

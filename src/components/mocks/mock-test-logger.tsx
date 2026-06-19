@@ -99,18 +99,21 @@ export function MockTestLogger() {
   }
 
   function handleSubmit() {
-    if (!source || !date || marksObtained <= 0) return
+    if (!source || !date) return
+    if (totalMarks <= 0) return
+    if (marksObtained < 0 || marksObtained > totalMarks) return
+    if (source.trim().length > 500) return
 
     const breakdown: Record<string, number> = {}
     for (const entry of subjectBreakdown) {
-      if (entry.subject) {
+      if (entry.subject && entry.marks >= 0) {
         breakdown[entry.subject] = (breakdown[entry.subject] || 0) + entry.marks
       }
     }
 
     addMockTest({
       id: genId(),
-      source,
+      source: source.trim(),
       date,
       totalMarks,
       marksObtained,
@@ -121,7 +124,7 @@ export function MockTestLogger() {
           subject: e.subject,
           topic: e.topic,
           errorType: e.errorType,
-          count: e.count,
+          count: Math.max(0, e.count),
         })),
     })
 

@@ -28,12 +28,12 @@ export function StudyTimer() {
   const selectedSubject = syllabus.find((s) => s.id === selectedSubjectId)
   const topics = selectedSubject?.topics || []
 
-  const tick = useCallback(() => {
+  function tick() {
     if (startTimeRef.current === null) return
     const now = Date.now()
     setElapsedMs(accumulatedRef.current + (now - startTimeRef.current))
     frameRef.current = requestAnimationFrame(tick)
-  }, [])
+  }
 
   useEffect(() => {
     if (isRunning) {
@@ -52,7 +52,8 @@ export function StudyTimer() {
     return () => {
       if (frameRef.current !== null) cancelAnimationFrame(frameRef.current)
     }
-  }, [isRunning, tick])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isRunning])
 
   const handleStart = useCallback(() => {
     if (!selectedTopicId) return
@@ -65,7 +66,8 @@ export function StudyTimer() {
 
   const handleStop = useCallback(() => {
     setIsRunning(false)
-    const hours = Math.round((elapsedMs / 60000) * 10) / 10 / 60
+    const finalAccumulated = accumulatedRef.current + (startTimeRef.current !== null ? Date.now() - startTimeRef.current : 0)
+    const hours = Math.round((finalAccumulated / 60000) * 10) / 10 / 60
     if (selectedTopicId && selectedSubjectId && hours > 0) {
       addLogEntry({
         subjectId: selectedSubjectId,
@@ -77,7 +79,7 @@ export function StudyTimer() {
     setElapsedMs(0)
     accumulatedRef.current = 0
     startTimeRef.current = null
-  }, [selectedTopicId, selectedSubjectId, elapsedMs, addLogEntry])
+  }, [selectedTopicId, selectedSubjectId, addLogEntry])
 
   const totalSeconds = Math.floor(elapsedMs / 1000)
   const displayHours = Math.floor(totalSeconds / 3600)

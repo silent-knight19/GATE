@@ -190,8 +190,9 @@ export const useAppStore = create<AppStore>()(
 
         cycleTopicStatus: (topicId) => {
           const current = get().topicsProgress[topicId]
+          if (current === 'mastered') return
           const order: TopicStatus[] = ['not_started', 'in_progress', 'completed', 'mastered']
-          const nextIndex = (order.indexOf(current) + 1) % order.length
+          const nextIndex = order.indexOf(current) + 1
           set(state => ({
             topicsProgress: { ...state.topicsProgress, [topicId]: order[nextIndex] }
           }))

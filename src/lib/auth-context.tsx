@@ -2,8 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, useCallback } from 'react'
 import { onAuthStateChanged, signInWithPopup, signOut as firebaseSignOut, type User } from 'firebase/auth'
-import { doc, getDoc, setDoc } from 'firebase/firestore'
-import { auth, db, googleProvider, isConfigured } from '@/lib/firebase'
+import { auth, googleProvider, isConfigured } from '@/lib/firebase'
 
 interface AuthContextValue {
   user: User | null
@@ -24,15 +23,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!isConfigured || !auth) {
-      setLoading(false)
-      return
-    }
+    if (!isConfigured || !auth) return
     const unsub = onAuthStateChanged(auth, (u) => {
       setUser(u)
       setLoading(false)
     })
     return () => unsub()
+  }, [])
+
+  useEffect(() => {
+    if (isConfigured && auth) return
+    const id = setTimeout(() => setLoading(false), 0)
+    return () => clearTimeout(id)
   }, [])
 
   const signInWithGoogle = useCallback(async () => {

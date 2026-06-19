@@ -180,7 +180,7 @@ export function SubjectDetail({ subject }: { subject: Subject }) {
               <YAxis tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" allowDecimals={false} />
               <Tooltip
                 contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px', fontSize: '12px' }}
-                formatter={(value: any) => [`${value} marks`]}
+                formatter={(value) => [`${value} marks`]}
               />
               <Bar dataKey="marks" fill={subject.color} radius={[4, 4, 0, 0]} barSize={36} />
             </BarChart>

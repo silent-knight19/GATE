@@ -43,17 +43,15 @@ export default function MocksPage() {
   const tests = useAppStore((s) => s.tests)
   const removeMockTest = useAppStore((s) => s.removeMockTest)
   const getMockTrend = useAppStore((s) => s.getMockTrend)
-  const getSubjectWeakness = useAppStore((s) => s.getSubjectWeakness)
   const getErrorProfile = useAppStore((s) => s.getErrorProfile)
 
   const [expandedRows, setExpandedRows] = useState<Record<string, boolean>>({})
 
   const trendData = useMemo(
     () => getMockTrend().map((t) => ({ date: t.date, marksObtained: t.marks })),
-    [tests]
+    [getMockTrend]
   )
-  const subjectWeakness = useMemo(() => getSubjectWeakness(), [tests])
-  const errorProfile = useMemo(() => getErrorProfile(), [tests])
+  const errorProfile = useMemo(() => getErrorProfile(), [getErrorProfile])
 
   const stats = useMemo(() => {
     if (tests.length === 0) {

@@ -35,6 +35,18 @@ function TrendIcon({ trend, change }: { trend: string; change: number }) {
   return <Minus className="inline h-3.5 w-3.5 text-yellow-500" />
 }
 
+function SortHeader({ k, sortKey, sortDir, onSort, children }: { k: SortKey; sortKey: SortKey; sortDir: SortDir; onSort: (key: SortKey) => void; children: React.ReactNode }) {
+  return (
+    <th
+      className="cursor-pointer select-none px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground hover:text-foreground"
+      onClick={() => onSort(k)}
+    >
+      {children}
+      {sortKey === k && <span className="ml-1">{sortDir === 'asc' ? '\u2191' : '\u2193'}</span>}
+    </th>
+  )
+}
+
 export default function WeightagePage() {
   const [sortKey, setSortKey] = useState<SortKey>('avg')
   const [sortDir, setSortDir] = useState<SortDir>('desc')
@@ -157,16 +169,6 @@ export default function WeightagePage() {
     return worst
   }, [rows])
 
-  const SortHeader = ({ k, children }: { k: SortKey; children: React.ReactNode }) => (
-    <th
-      className="cursor-pointer select-none px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground hover:text-foreground"
-      onClick={() => toggleSort(k)}
-    >
-      {children}
-      {sortKey === k && <span className="ml-1">{sortDir === 'asc' ? '\u2191' : '\u2193'}</span>}
-    </th>
-  )
-
   return (
     <div className="min-h-screen bg-background p-4 md:p-6 space-y-6">
       <div>
@@ -182,14 +184,14 @@ export default function WeightagePage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b">
-                <SortHeader k="subject">Subject</SortHeader>
-                <SortHeader k={2021}>2021</SortHeader>
-                <SortHeader k={2022}>2022</SortHeader>
-                <SortHeader k={2023}>2023</SortHeader>
-                <SortHeader k={2024}>2024</SortHeader>
-                <SortHeader k={2025}>2025</SortHeader>
-                <SortHeader k="avg">Avg</SortHeader>
-                <SortHeader k="trend">Trend</SortHeader>
+                <SortHeader k="subject" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort}>Subject</SortHeader>
+                <SortHeader k={2021} sortKey={sortKey} sortDir={sortDir} onSort={toggleSort}>2021</SortHeader>
+                <SortHeader k={2022} sortKey={sortKey} sortDir={sortDir} onSort={toggleSort}>2022</SortHeader>
+                <SortHeader k={2023} sortKey={sortKey} sortDir={sortDir} onSort={toggleSort}>2023</SortHeader>
+                <SortHeader k={2024} sortKey={sortKey} sortDir={sortDir} onSort={toggleSort}>2024</SortHeader>
+                <SortHeader k={2025} sortKey={sortKey} sortDir={sortDir} onSort={toggleSort}>2025</SortHeader>
+                <SortHeader k="avg" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort}>Avg</SortHeader>
+                <SortHeader k="trend" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort}>Trend</SortHeader>
               </tr>
             </thead>
             <tbody>

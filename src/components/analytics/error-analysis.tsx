@@ -7,7 +7,11 @@ import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts"
 
 const COLORS = ["#ef4444", "#eab308", "#3b82f6", "#22c55e", "#a855f7", "#f97316"]
 
-function CustomTooltip({ active, payload }: any) {
+interface TooltipPayloadEntry {
+  payload: { name: string; value: number; percent: number }
+}
+
+function CustomTooltip({ active, payload }: { active?: boolean; payload?: TooltipPayloadEntry[] }) {
   if (!active || !payload?.length) return null
   const d = payload[0].payload
   return (

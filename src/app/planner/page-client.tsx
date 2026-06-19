@@ -36,7 +36,7 @@ export default function PlannerPage() {
 
   const [showSettings, setShowSettings] = useState(false)
 
-  const overall = useMemo(() => getOverallProgress(), [topicsProgress])
+  const overall = useMemo(() => getOverallProgress(), [topicsProgress, getOverallProgress])
 
   const todayGroup = useMemo(
     () => dailyTasks.find((g) => g.date === getTodayStr()),
@@ -238,7 +238,7 @@ export default function PlannerPage() {
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle>Today's Tasks</CardTitle>
+            <CardTitle>Today&apos;s Tasks</CardTitle>
           </CardHeader>
           <CardContent>
             <TodayTasks tasks={todayTasks} onToggle={handleToggleTask} />

@@ -15,12 +15,13 @@ const TABS = [
 
 export default function PredictorPage() {
   const router = useRouter()
-  const [tab, setTab] = useState('converter')
-
-  useEffect(() => {
-    const hash = window.location.hash.replace('#', '')
-    if (hash && TABS.some(t => t.value === hash)) setTab(hash)
-  }, [])
+  const [tab, setTab] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const hash = window.location.hash.replace('#', '')
+      if (hash && TABS.some(t => t.value === hash)) return hash
+    }
+    return 'converter'
+  })
 
   const handleTabChange = (value: string) => {
     setTab(value)

@@ -21,7 +21,11 @@ const bins = [
   { min: 81, max: 100, label: "81-100" },
 ]
 
-function CustomTooltip({ active, payload, label }: any) {
+interface TooltipPayloadEntry {
+  payload: { range: string; count: number }
+}
+
+function CustomTooltip({ active, payload }: { active?: boolean; payload?: TooltipPayloadEntry[] }) {
   if (!active || !payload?.length) return null
   const d = payload[0].payload
   return (

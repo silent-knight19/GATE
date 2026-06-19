@@ -13,7 +13,11 @@ import {
   CartesianGrid,
 } from "recharts"
 
-function CustomTooltip({ active, payload, label }: any) {
+interface TooltipPayloadEntry {
+  payload: { date: string; score: number; source: string }
+}
+
+function CustomTooltip({ active, payload }: { active?: boolean; payload?: TooltipPayloadEntry[] }) {
   if (!active || !payload?.length) return null
   const entry = payload[0].payload
   return (
