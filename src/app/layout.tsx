@@ -18,6 +18,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://gate-tracker-e1a99.web.app"),
   title: {
     default: "GATE CSE 2027 Preparation Tracker & Syllabus Planner",
     template: "%s | GATE 2027 Tracker"
@@ -76,6 +77,7 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col">
+        {/* SoftwareApplication schema — tells Google this is a free educational web app */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -83,14 +85,50 @@ export default function RootLayout({
               "@context": "https://schema.org",
               "@type": "SoftwareApplication",
               "name": "GATE CSE 2027 Preparation Tracker",
+              "url": "https://gate-tracker-e1a99.web.app",
               "operatingSystem": "All",
               "applicationCategory": "EducationalApplication",
               "description": "An interactive syllabus tracker, study logger, mock test analyzer, and rank predictor for GATE 2027 Computer Science exam preparation.",
               "offers": {
                 "@type": "Offer",
                 "price": "0.00",
-                "priceCurrency": "USD"
-              }
+                "priceCurrency": "INR"
+              },
+              "featureList": [
+                "GATE syllabus topic-by-topic tracker",
+                "Daily study logger with streak tracking",
+                "Mock test score analyzer and error analysis",
+                "GATE rank predictor and marks converter",
+                "Subject weightage analysis (2021–2025)",
+                "PSU recruitment tracker",
+                "COAP and CCMT counselling guide"
+              ]
+            })
+          }}
+        />
+        {/* Organization schema — E-E-A-T signal for Google */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              "name": "GATE CSE 2027 Tracker",
+              "url": "https://gate-tracker-e1a99.web.app",
+              "description": "Free all-in-one preparation tracker for GATE CSE 2027 aspirants."
+            })
+          }}
+        />
+        {/* WebSite schema — helps Google understand site structure */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              "name": "GATE CSE 2027 Tracker",
+              "url": "https://gate-tracker-e1a99.web.app",
+              "description": "Track your GATE 2027 Computer Science preparation with a free interactive tracker."
             })
           }}
         />

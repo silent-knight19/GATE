@@ -1,63 +1,52 @@
-'use client'
+import type { Metadata } from "next"
+import PageClient from "./page-client"
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { cn } from '@/lib/utils'
-import { MarksConverter } from '@/components/predictor/marks-converter'
-import { CollegePredictor } from '@/components/predictor/college-predictor'
-import { TargetTracker } from '@/components/predictor/target-tracker'
+export const metadata: Metadata = {
+  title: "Rank & College Predictor",
+  description:
+    "Calculate your GATE score, predict your All India Rank (AIR), and find matching IITs, NITs, and IIITs based on historical GATE cutoff trends.",
+  keywords: [
+    "GATE rank predictor",
+    "college predictor",
+    "IIT NIT IIIT cutoff",
+    "GATE score calculator",
+    "target rank tracker",
+  ],
+  alternates: {
+    canonical: "https://gate-tracker-e1a99.web.app/predictor",
+  },
+  openGraph: {
+    title: "Rank & College Predictor | GATE CSE 2027 Tracker",
+    description:
+      "Calculate your GATE score, predict your All India Rank (AIR), and find matching IITs, NITs, and IIITs based on historical GATE cutoff trends.",
+  },
+  twitter: {
+    title: "Rank & College Predictor | GATE CSE 2027 Tracker",
+    description:
+      "Calculate your GATE score, predict your All India Rank (AIR), and find matching IITs, NITs, and IIITs based on historical GATE cutoff trends.",
+  },
+}
 
-const TABS = [
-  { value: 'converter', label: 'Marks → Score → Rank' },
-  { value: 'college', label: 'College Predictor' },
-  { value: 'target', label: 'Target Tracker' },
-] as const
-
-export default function PredictorPage() {
-  const router = useRouter()
-  const [tab, setTab] = useState('converter')
-
-  useEffect(() => {
-    const hash = window.location.hash.replace('#', '')
-    if (hash && TABS.some(t => t.value === hash)) setTab(hash)
-  }, [])
-
-  const handleTabChange = (value: string) => {
-    setTab(value)
-    router.replace(`/predictor#${value}`, { scroll: false })
-  }
-
+export default function Page() {
   return (
-    <div className="mx-auto max-w-5xl space-y-5 p-4 md:p-6">
-      <title>GATE 2027 Rank & College Predictor | GATE CSE</title>
-      <meta name="description" content="Calculate your GATE score, predict your All India Rank (AIR), and find matching IITs, NITs, and IIITs based on historical GATE cutoff trends." />
-      <div>
-        <h1 className="text-lg font-semibold text-foreground">Predictors</h1>
-        <p className="text-xs text-muted-foreground">Marks conversion, college prediction & target tracking tools</p>
-      </div>
-
-      <div className="rounded-lg bg-muted p-1">
-        <div className="flex gap-1">
-          {TABS.map(t => (
-            <button
-              key={t.value}
-              onClick={() => handleTabChange(t.value)}
-              className={cn(
-                "flex-1 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                tab === t.value
-                  ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              {t.label}
-            </button>
-          ))}
+    <>
+      <PageClient />
+      <section className="mx-auto max-w-5xl px-4 pb-8 md:px-6">
+        <div className="rounded-xl border border-border bg-card p-5 text-xs leading-relaxed text-muted-foreground">
+          <h2 className="mb-2 text-sm font-semibold text-foreground">About the GATE Rank Predictor</h2>
+          <p className="mb-2">
+            This tool helps GATE CSE 2027 aspirants estimate their All India Rank (AIR) from expected marks.
+            It converts raw marks (out of 100) to a normalized GATE score (out of 1000) using the official
+            normalization formula, then maps it to an estimated rank range based on historical data from
+            2021&ndash;2025.
+          </p>
+          <p>
+            The College Predictor tab shows which IITs, NITs, and IIITs you may be eligible for based on
+            historical GATE CSE cutoff trends. The Target Tracker lets you set a goal rank and see the marks
+            you need to achieve it. All predictions are estimates and should be used for planning purposes only.
+          </p>
         </div>
-      </div>
-
-      {tab === 'converter' && <MarksConverter />}
-      {tab === 'college' && <CollegePredictor />}
-      {tab === 'target' && <TargetTracker />}
-    </div>
+      </section>
+    </>
   )
 }

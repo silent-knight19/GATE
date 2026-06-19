@@ -10,9 +10,12 @@ import ConsistencyHeatmap from "@/components/analytics/consistency-heatmap"
 import BurnoutIndicator from "@/components/analytics/burnout-indicator"
 
 export const metadata: Metadata = {
-  title: "Analytics & Readiness Insights | GATE CSE 2027",
+  title: "Analytics & Readiness Insights",
   description: "Detailed analytics of your GATE 2027 preparation. Monitor readiness scores, study consistency, error distribution, subject weaknesses, and performance charts.",
   keywords: ["GATE analytics", "GATE 2027 readiness score", "GATE study heatmap", "weak subjects GATE"],
+  alternates: {
+    canonical: "https://gate-tracker-e1a99.web.app/analytics",
+  },
 }
 
 export default function AnalyticsPage() {

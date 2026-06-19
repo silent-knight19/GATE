@@ -1,11 +1,19 @@
 "use client"
 
+"use client"
+
 import { useState } from "react"
+import { usePathname } from "next/navigation"
 import { Sidebar } from "@/components/layout/sidebar"
 import { Navbar } from "@/components/layout/navbar"
 
 export function LayoutClient({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname()
   const [sidebarOpen, setSidebarOpen] = useState(false)
+
+  if (pathname === "/") {
+    return <>{children}</>
+  }
 
   return (
     <div className="flex min-h-screen">

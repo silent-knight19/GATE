@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /_next/
+
+Host: https://gate-tracker-e1a99.web.app
+Sitemap: https://gate-tracker-e1a99.web.app/sitemap.xml

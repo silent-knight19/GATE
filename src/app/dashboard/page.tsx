@@ -4,9 +4,20 @@ import SyllabusOverview from "@/components/dashboard/syllabus-overview"
 import ExamOverview from "@/components/dashboard/exam-overview"
 
 export const metadata: Metadata = {
-  title: "Dashboard | GATE CSE 2027 Study Planner & Tracker",
+  title: "Dashboard",
   description: "Track your GATE 2027 Computer Science & IT preparation. Features live syllabus overview, subject weightage, recommended study hours, and exam countdown.",
   keywords: ["GATE 2027", "GATE CSE 2027", "GATE preparation dashboard", "GATE study planner", "IIT Roorkee GATE"],
+  alternates: {
+    canonical: "https://gate-tracker-e1a99.web.app/dashboard",
+  },
+  openGraph: {
+    title: "Dashboard | GATE CSE 2027 Tracker",
+    description: "Track your GATE 2027 CS & IT preparation with live syllabus overview, subject weightage, and exam countdown.",
+  },
+  twitter: {
+    title: "Dashboard | GATE CSE 2027 Tracker",
+    description: "Track your GATE 2027 CS & IT preparation with live syllabus overview, subject weightage, and exam countdown.",
+  },
 }
 
 export default function DashboardPage() {

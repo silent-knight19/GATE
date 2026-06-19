@@ -43,6 +43,8 @@ yarn-error.log*
 
 # firebase
 .firebase
+firebase-debug.log
+google*.html
 
 # typescript
 *.tsbuildinfo

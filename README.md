@@ -1,36 +1,45 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# GATE CSE 2027 Preparation Tracker
+
+An all-in-one free tracker for GATE Computer Science 2027 aspirants. Track syllabus progress, log study hours, analyze mock tests, predict rank, and monitor PSU recruitment — all synced to the cloud.
+
+## Features
+
+- **Syllabus Tracker** — Topic-by-topic breakdown with revision cycle tracking
+- **Study Logger** — Daily study sessions with streaks and weekly charts
+- **Mock Test Analyzer** — Score trends, error analysis, and subject weakness detection
+- **Rank Predictor** — Marks to score/rank conversion, college cutoff predictor
+- **PSU Recruitment Tracker** — Salary, eligibility, and cutoff info for PSUs hiring through GATE
+- **Counselling Guide** — Step-by-step COAP and CCMT process
+- **Subject Weightage** — 5-year marks distribution analysis
+- **Cloud Sync** — Progress saved via Firebase (Google sign-in)
+
+## Tech Stack
+
+- [Next.js](https://nextjs.org) 16 (App Router, static export)
+- React 19
+- TypeScript
+- Tailwind CSS v4
+- Firebase (Auth + Firestore)
+- Zustand (state management)
+- Recharts (charts)
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Build
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run build
+```
 
-## Learn More
+Static export outputs to `out/`.
 
-To learn more about Next.js, take a look at the following resources:
+## Deployment
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Deployed via Firebase Hosting. The static export in `out/` is deployed to `gate-tracker-e1a99.web.app`.
