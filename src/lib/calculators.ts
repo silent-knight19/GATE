@@ -64,9 +64,15 @@ function clamp(value: number, min: number, max: number): number {
 
 export function marksToScore(marks: number): number {
   const clamped = Math.min(100, Math.max(0, marks))
-  const { qualifyingMarksGeneral, topMeanMarks } = gateCs2025Stats
-  const score =
-    350 + ((900 - 350) * (clamped - qualifyingMarksGeneral)) / (topMeanMarks - qualifyingMarksGeneral)
+  let bracket = rankMapping[rankMapping.length - 1]
+  for (const entry of rankMapping) {
+    if (clamped >= entry.minMarks && clamped <= entry.maxMarks) {
+      bracket = entry
+      break
+    }
+  }
+  const ratio = (clamped - bracket.minMarks) / (Math.max(bracket.maxMarks - bracket.minMarks, 1))
+  const score = bracket.minScore + ratio * (bracket.maxScore - bracket.minScore)
   return Math.round(clamp(score, 0, 1000) * 100) / 100
 }
 
@@ -389,33 +395,34 @@ export interface College {
 }
 
 export const COLLEGES: College[] = [
-  { id: 'iit-madras', name: 'IIT Madras', tier: 'IIT', specializations: ['CSE', 'AI', 'Data Science'], city: 'Chennai', state: 'Tamil Nadu', cutoffScore: 811, cutoffSource: 'IIT Madras M.Tech 2025 cut-off PDF and COAP reports' },
-  { id: 'iit-delhi', name: 'IIT Delhi', tier: 'IIT', specializations: ['CSE', 'AI'], city: 'New Delhi', state: 'Delhi', cutoffScore: 800, cutoffSource: 'IIT Delhi CSE shortlisting criteria 2024-25' },
-  { id: 'iit-bombay', name: 'IIT Bombay', tier: 'IIT', specializations: ['CSE'], city: 'Mumbai', state: 'Maharashtra', cutoffScore: 750, cutoffSource: 'IIT Bombay minimum GATE cut-off 2025-26; final offers vary by category' },
-  { id: 'iit-kanpur', name: 'IIT Kanpur', tier: 'IIT', specializations: ['CSE'], city: 'Kanpur', state: 'Uttar Pradesh', cutoffScore: 740, cutoffSource: 'COAP institute cut-off reports; planning estimate' },
-  { id: 'iit-kharagpur', name: 'IIT Kharagpur', tier: 'IIT', specializations: ['CSE', 'AI'], city: 'Kharagpur', state: 'West Bengal', cutoffScore: 730, cutoffSource: 'COAP institute cut-off reports; planning estimate' },
-  { id: 'iit-roorkee', name: 'IIT Roorkee', tier: 'IIT', specializations: ['CSE'], city: 'Roorkee', state: 'Uttarakhand', cutoffScore: 720, cutoffSource: 'COAP institute cut-off reports; planning estimate' },
-  { id: 'iit-guwahati', name: 'IIT Guwahati', tier: 'IIT', specializations: ['CSE'], city: 'Guwahati', state: 'Assam', cutoffScore: 700, cutoffSource: 'COAP institute cut-off reports; planning estimate' },
-  { id: 'iit-hyderabad', name: 'IIT Hyderabad', tier: 'IIT', specializations: ['CSE', 'AI'], city: 'Hyderabad', state: 'Telangana', cutoffScore: 720, cutoffSource: 'COAP 2025 round-wise GATE data' },
-  { id: 'iit-jodhpur', name: 'IIT Jodhpur', tier: 'IIT', specializations: ['CSE', 'AI'], city: 'Jodhpur', state: 'Rajasthan', cutoffScore: 650, cutoffSource: 'COAP 2025 round-wise GATE data' },
-  { id: 'iit-patna', name: 'IIT Patna', tier: 'IIT', specializations: ['CSE'], city: 'Patna', state: 'Bihar', cutoffScore: 640, cutoffSource: 'COAP institute cut-off reports; planning estimate' },
-  { id: 'iit-bhu', name: 'IIT (BHU) Varanasi', tier: 'IIT', specializations: ['CSE', 'AI'], city: 'Varanasi', state: 'Uttar Pradesh', cutoffScore: 690, cutoffSource: 'COAP institute cut-off reports; planning estimate' },
-  { id: 'nit-trichy', name: 'NIT Trichy', tier: 'NIT', specializations: ['CSE'], city: 'Tiruchirappalli', state: 'Tamil Nadu', cutoffScore: 761, cutoffSource: 'GoClasses COAP/CCMT 2025 archives' },
-  { id: 'nit-surathkal', name: 'NIT Surathkal', tier: 'NIT', specializations: ['CSE'], city: 'Mangalore', state: 'Karnataka', cutoffScore: 720, cutoffSource: 'GoClasses COAP/CCMT 2025 archives' },
-  { id: 'nit-warangal', name: 'NIT Warangal', tier: 'NIT', specializations: ['CSE'], city: 'Warangal', state: 'Telangana', cutoffScore: 735, cutoffSource: 'GoClasses COAP/CCMT 2025 archives' },
-  { id: 'nit-calicut', name: 'NIT Calicut', tier: 'NIT', specializations: ['CSE'], city: 'Calicut', state: 'Kerala', cutoffScore: 660, cutoffSource: 'GoClasses COAP/CCMT 2025 archives' },
-  { id: 'nit-durgapur', name: 'NIT Durgapur', tier: 'NIT', specializations: ['CSE'], city: 'Durgapur', state: 'West Bengal', cutoffScore: 620, cutoffSource: 'GoClasses COAP/CCMT 2025 archives' },
-  { id: 'nit-kurukshetra', name: 'NIT Kurukshetra', tier: 'NIT', specializations: ['CSE'], city: 'Kurukshetra', state: 'Haryana', cutoffScore: 610, cutoffSource: 'GoClasses COAP/CCMT 2025 archives' },
-  { id: 'nit-patna', name: 'NIT Patna', tier: 'NIT', specializations: ['CSE'], city: 'Patna', state: 'Bihar', cutoffScore: 570, cutoffSource: 'GoClasses COAP/CCMT 2025 archives' },
-  { id: 'nit-silchar', name: 'NIT Silchar', tier: 'NIT', specializations: ['CSE'], city: 'Silchar', state: 'Assam', cutoffScore: 540, cutoffSource: 'GoClasses COAP/CCMT 2025 archives' },
-  { id: 'mnnit', name: 'MNNIT Allahabad', tier: 'NIT', specializations: ['CSE'], city: 'Prayagraj', state: 'Uttar Pradesh', cutoffScore: 660, cutoffSource: 'GoClasses COAP/CCMT 2025 archives' },
-  { id: 'svnit', name: 'SVNIT Surat', tier: 'NIT', specializations: ['CSE'], city: 'Surat', state: 'Gujarat', cutoffScore: 590, cutoffSource: 'GoClasses COAP/CCMT 2025 archives' },
-  { id: 'iiit-hyderabad', name: 'IIIT Hyderabad', tier: 'IIIT', specializations: ['CSE', 'AI'], city: 'Hyderabad', state: 'Telangana', cutoffScore: 720, cutoffSource: 'Institute admissions are separate from CCMT; planning estimate' },
-  { id: 'iiit-bangalore', name: 'IIIT Bangalore', tier: 'IIIT', specializations: ['CSE', 'AI'], city: 'Bangalore', state: 'Karnataka', cutoffScore: 650, cutoffSource: 'Institute admissions are separate from CCMT; planning estimate' },
-  { id: 'iiit-delhi', name: 'IIIT Delhi', tier: 'IIIT', specializations: ['CSE', 'AI'], city: 'New Delhi', state: 'Delhi', cutoffScore: 630, cutoffSource: 'Institute admissions are separate from CCMT; planning estimate' },
-  { id: 'iiit-allahabad', name: 'IIIT Allahabad', tier: 'IIIT', specializations: ['CSE', 'IT'], city: 'Prayagraj', state: 'Uttar Pradesh', cutoffScore: 560, cutoffSource: 'CCMT official opening/closing score reports' },
-  { id: 'iiit-gwalior', name: 'ABV-IIITM Gwalior', tier: 'IIIT', specializations: ['CSE'], city: 'Gwalior', state: 'Madhya Pradesh', cutoffScore: 520, cutoffSource: 'CCMT official opening/closing score reports' },
-  { id: 'iiit-kota', name: 'IIIT Kota', tier: 'IIIT', specializations: ['CSE'], city: 'Kota', state: 'Rajasthan', cutoffScore: 480, cutoffSource: 'CCMT official opening/closing score reports' },
-  { id: 'iiest-shibpur', name: 'IIEST Shibpur', tier: 'GFTI', specializations: ['CSE'], city: 'Shibpur', state: 'West Bengal', cutoffScore: 520, cutoffSource: 'CCMT official opening/closing score reports' },
-  { id: 'bit-mesra', name: 'BIT Mesra', tier: 'GFTI', specializations: ['CSE', 'IT'], city: 'Ranchi', state: 'Jharkhand', cutoffScore: 480, cutoffSource: 'CCMT official opening/closing score reports' },
+  { id: 'iisc-bangalore', name: 'IISc Bangalore', tier: 'IIT', specializations: ['CSA', 'AI'], city: 'Bangalore', state: 'Karnataka', cutoffScore: 860, cutoffSource: 'IISc Admission GATE Cutoff 2024-25' },
+  { id: 'iit-bombay', name: 'IIT Bombay', tier: 'IIT', specializations: ['CSE'], city: 'Mumbai', state: 'Maharashtra', cutoffScore: 850, cutoffSource: 'IIT Bombay minimum GATE cut-off 2024-25' },
+  { id: 'iit-delhi', name: 'IIT Delhi', tier: 'IIT', specializations: ['CSE', 'AI'], city: 'New Delhi', state: 'Delhi', cutoffScore: 830, cutoffSource: 'IIT Delhi CSE shortlisting criteria 2024-25' },
+  { id: 'iit-madras', name: 'IIT Madras', tier: 'IIT', specializations: ['CSE', 'AI', 'Data Science'], city: 'Chennai', state: 'Tamil Nadu', cutoffScore: 810, cutoffSource: 'IIT Madras M.Tech COAP reports 2024-25' },
+  { id: 'iit-kanpur', name: 'IIT Kanpur', tier: 'IIT', specializations: ['CSE'], city: 'Kanpur', state: 'Uttar Pradesh', cutoffScore: 790, cutoffSource: 'COAP institute cut-off reports; median estimate' },
+  { id: 'iit-kharagpur', name: 'IIT Kharagpur', tier: 'IIT', specializations: ['CSE', 'AI'], city: 'Kharagpur', state: 'West Bengal', cutoffScore: 770, cutoffSource: 'COAP institute cut-off reports; median estimate' },
+  { id: 'iit-roorkee', name: 'IIT Roorkee', tier: 'IIT', specializations: ['CSE'], city: 'Roorkee', state: 'Uttarakhand', cutoffScore: 750, cutoffSource: 'COAP institute cut-off reports; median estimate' },
+  { id: 'iit-guwahati', name: 'IIT Guwahati', tier: 'IIT', specializations: ['CSE'], city: 'Guwahati', state: 'Assam', cutoffScore: 720, cutoffSource: 'COAP institute cut-off reports; median estimate' },
+  { id: 'iit-hyderabad', name: 'IIT Hyderabad', tier: 'IIT', specializations: ['CSE', 'AI'], city: 'Hyderabad', state: 'Telangana', cutoffScore: 730, cutoffSource: 'COAP 2024-25 round-wise GATE data' },
+  { id: 'iit-bhu', name: 'IIT (BHU) Varanasi', tier: 'IIT', specializations: ['CSE', 'AI'], city: 'Varanasi', state: 'Uttar Pradesh', cutoffScore: 710, cutoffSource: 'COAP institute cut-off reports; median estimate' },
+  { id: 'iit-jodhpur', name: 'IIT Jodhpur', tier: 'IIT', specializations: ['CSE', 'AI'], city: 'Jodhpur', state: 'Rajasthan', cutoffScore: 660, cutoffSource: 'COAP 2024-25 round-wise GATE data' },
+  { id: 'iit-patna', name: 'IIT Patna', tier: 'IIT', specializations: ['CSE'], city: 'Patna', state: 'Bihar', cutoffScore: 650, cutoffSource: 'COAP institute cut-off reports; median estimate' },
+  { id: 'nit-trichy', name: 'NIT Trichy', tier: 'NIT', specializations: ['CSE'], city: 'Tiruchirappalli', state: 'Tamil Nadu', cutoffScore: 755, cutoffSource: 'CCMT 2024-25 Opening/Closing Scores' },
+  { id: 'nit-warangal', name: 'NIT Warangal', tier: 'NIT', specializations: ['CSE'], city: 'Warangal', state: 'Telangana', cutoffScore: 740, cutoffSource: 'CCMT 2024-25 Opening/Closing Scores' },
+  { id: 'nit-surathkal', name: 'NIT Surathkal', tier: 'NIT', specializations: ['CSE'], city: 'Mangalore', state: 'Karnataka', cutoffScore: 730, cutoffSource: 'CCMT 2024-25 Opening/Closing Scores' },
+  { id: 'nit-calicut', name: 'NIT Calicut', tier: 'NIT', specializations: ['CSE'], city: 'Calicut', state: 'Kerala', cutoffScore: 680, cutoffSource: 'CCMT 2024-25 Opening/Closing Scores' },
+  { id: 'mnnit', name: 'MNNIT Allahabad', tier: 'NIT', specializations: ['CSE'], city: 'Prayagraj', state: 'Uttar Pradesh', cutoffScore: 670, cutoffSource: 'CCMT 2024-25 Opening/Closing Scores' },
+  { id: 'nit-durgapur', name: 'NIT Durgapur', tier: 'NIT', specializations: ['CSE'], city: 'Durgapur', state: 'West Bengal', cutoffScore: 620, cutoffSource: 'CCMT 2024-25 Opening/Closing Scores' },
+  { id: 'nit-kurukshetra', name: 'NIT Kurukshetra', tier: 'NIT', specializations: ['CSE'], city: 'Kurukshetra', state: 'Haryana', cutoffScore: 610, cutoffSource: 'CCMT 2024-25 Opening/Closing Scores' },
+  { id: 'svnit', name: 'SVNIT Surat', tier: 'NIT', specializations: ['CSE'], city: 'Surat', state: 'Gujarat', cutoffScore: 590, cutoffSource: 'CCMT 2024-25 Opening/Closing Scores' },
+  { id: 'nit-patna', name: 'NIT Patna', tier: 'NIT', specializations: ['CSE'], city: 'Patna', state: 'Bihar', cutoffScore: 550, cutoffSource: 'CCMT 2024-25 Opening/Closing Scores' },
+  { id: 'nit-silchar', name: 'NIT Silchar', tier: 'NIT', specializations: ['CSE'], city: 'Silchar', state: 'Assam', cutoffScore: 530, cutoffSource: 'CCMT 2024-25 Opening/Closing Scores' },
+  { id: 'iiit-hyderabad', name: 'IIIT Hyderabad', tier: 'IIIT', specializations: ['CSE', 'AI'], city: 'Hyderabad', state: 'Telangana', cutoffScore: 780, cutoffSource: 'IIIT-H PGEE/GATE Admissions Estimate' },
+  { id: 'iiit-bangalore', name: 'IIIT Bangalore', tier: 'IIIT', specializations: ['CSE', 'AI'], city: 'Bangalore', state: 'Karnataka', cutoffScore: 660, cutoffSource: 'Institute admissions are separate from CCMT' },
+  { id: 'iiit-delhi', name: 'IIIT Delhi', tier: 'IIIT', specializations: ['CSE', 'AI'], city: 'New Delhi', state: 'Delhi', cutoffScore: 640, cutoffSource: 'Institute admissions are separate from CCMT' },
+  { id: 'iiit-allahabad', name: 'IIIT Allahabad', tier: 'IIIT', specializations: ['CSE', 'IT'], city: 'Prayagraj', state: 'Uttar Pradesh', cutoffScore: 580, cutoffSource: 'CCMT 2024-25 Opening/Closing Scores' },
+  { id: 'iiit-gwalior', name: 'ABV-IIITM Gwalior', tier: 'IIIT', specializations: ['CSE'], city: 'Gwalior', state: 'Madhya Pradesh', cutoffScore: 540, cutoffSource: 'CCMT 2024-25 Opening/Closing Scores' },
+  { id: 'iiit-kota', name: 'IIIT Kota', tier: 'IIIT', specializations: ['CSE'], city: 'Kota', state: 'Rajasthan', cutoffScore: 490, cutoffSource: 'CCMT 2024-25 Opening/Closing Scores' },
+  { id: 'iiest-shibpur', name: 'IIEST Shibpur', tier: 'GFTI', specializations: ['CSE'], city: 'Shibpur', state: 'West Bengal', cutoffScore: 530, cutoffSource: 'CCMT 2024-25 Opening/Closing Scores' },
+  { id: 'bit-mesra', name: 'BIT Mesra', tier: 'GFTI', specializations: ['CSE', 'IT'], city: 'Ranchi', state: 'Jharkhand', cutoffScore: 480, cutoffSource: 'CCMT 2024-25 Opening/Closing Scores' },
 ]
