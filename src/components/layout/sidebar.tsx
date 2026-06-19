@@ -18,6 +18,7 @@ import {
   Sun,
   Moon,
   TrendingUp,
+  Library,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Sheet, SheetContent } from "@/components/ui/sheet"
@@ -49,6 +50,7 @@ const navItems: NavItem[] = [
     ],
   },
   { label: "PSU Tracker", icon: GraduationCap, href: "/psu" },
+  { label: "Resources", icon: Library, href: "/resources" },
   { label: "Counselling", icon: ScrollText, href: "/counselling" },
 ]
 
@@ -153,15 +155,6 @@ function SidebarContent({ onNavClick }: { onNavClick?: () => void }) {
         })}
       </nav>
 
-      <div className="mt-auto border-t border-border p-2">
-        <button
-          onClick={toggleTheme}
-          className="flex h-10 w-full items-center gap-3 rounded-md px-3 text-[16.8px] font-bold text-muted-foreground transition-colors hover:bg-secondary/50 hover:text-foreground"
-        >
-          {theme === "dark" ? <Moon className="size-[17px] shrink-0" /> : <Sun className="size-[17px] shrink-0" />}
-          <span>{theme === "dark" ? "Dark" : "Light"}</span>
-        </button>
-      </div>
     </div>
   )
 }

@@ -21,6 +21,7 @@ export interface Topic {
 export interface Subject {
   id: string
   name: string
+  shortName: string
   weightage: number
   color: string
   topics: Topic[]
@@ -37,6 +38,7 @@ const SYLLABUS: Subject[] = [
   {
     id: 'ga',
     name: 'General Aptitude',
+    shortName: 'GA',
     weightage: 15,
     color: '#6366f1',
     yearMarks: [
@@ -106,6 +108,7 @@ const SYLLABUS: Subject[] = [
   {
     id: 'em',
     name: 'Engineering Mathematics',
+    shortName: 'EM',
     weightage: 7,
     color: '#8b5cf6',
     yearMarks: [
@@ -209,6 +212,7 @@ const SYLLABUS: Subject[] = [
   {
     id: 'dm',
     name: 'Discrete Mathematics',
+    shortName: 'DM',
     weightage: 7.8,
     color: '#a855f7',
     yearMarks: [
@@ -232,6 +236,7 @@ const SYLLABUS: Subject[] = [
   {
     id: 'dl',
     name: 'Digital Logic',
+    shortName: 'DL',
     weightage: 5.4,
     color: '#ec4899',
     yearMarks: [
@@ -318,6 +323,7 @@ const SYLLABUS: Subject[] = [
   {
     id: 'coa',
     name: 'Computer Organization & Architecture',
+    shortName: 'COA',
     weightage: 8.8,
     color: '#f97316',
     yearMarks: [
@@ -438,6 +444,7 @@ const SYLLABUS: Subject[] = [
   {
     id: 'pds',
     name: 'Programming & Data Structures',
+    shortName: 'PDS',
     weightage: 9.2,
     color: '#22c55e',
     yearMarks: [
@@ -592,6 +599,7 @@ const SYLLABUS: Subject[] = [
   {
     id: 'algo',
     name: 'Algorithms',
+    shortName: 'Algo.',
     weightage: 8.6,
     color: '#14b8a6',
     yearMarks: [
@@ -729,6 +737,7 @@ const SYLLABUS: Subject[] = [
   {
     id: 'toc',
     name: 'Theory of Computation',
+    shortName: 'TOC',
     weightage: 8.6,
     color: '#e11d48',
     yearMarks: [
@@ -832,6 +841,7 @@ const SYLLABUS: Subject[] = [
   {
     id: 'cd',
     name: 'Compiler Design',
+    shortName: 'CD',
     weightage: 6.2,
     color: '#d946ef',
     yearMarks: [
@@ -952,6 +962,7 @@ const SYLLABUS: Subject[] = [
   {
     id: 'os',
     name: 'Operating Systems',
+    shortName: 'OS',
     weightage: 7.2,
     color: '#06b6d4',
     yearMarks: [
@@ -1106,6 +1117,7 @@ const SYLLABUS: Subject[] = [
   {
     id: 'db',
     name: 'Databases',
+    shortName: 'DB',
     weightage: 7.2,
     color: '#84cc16',
     yearMarks: [
@@ -1226,6 +1238,7 @@ const SYLLABUS: Subject[] = [
   {
     id: 'cn',
     name: 'Computer Networks',
+    shortName: 'CN',
     weightage: 9,
     color: '#f43f5e',
     yearMarks: [

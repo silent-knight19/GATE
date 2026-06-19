@@ -1,4 +1,4 @@
-import { gateCs2025Stats, rankMapping } from '@/lib/data/rankMapping'
+import { gateCs2025Stats, rankMapping, categoryQualifyingRatios } from '@/lib/data/rankMapping'
 import type { Subject } from '@/lib/data/syllabus'
 
 export interface RankPrediction {
@@ -72,18 +72,20 @@ export function marksToScore(marks: number): number {
 
 export function marksToRank(marks: number, category: string = 'General'): RankPrediction {
   const clamped = Math.min(100, Math.max(0, marks))
-  void category
+
+  const ratio = categoryQualifyingRatios[category as keyof typeof categoryQualifyingRatios] ?? 1
+  const adjustedMarks = clamped * ratio
 
   let bracket = rankMapping[rankMapping.length - 1]
   for (const entry of rankMapping) {
-    if (clamped >= entry.minMarks && clamped <= entry.maxMarks) {
+    if (adjustedMarks >= entry.minMarks && adjustedMarks <= entry.maxMarks) {
       bracket = entry
       break
     }
   }
 
-  const ratio = (clamped - bracket.minMarks) / (Math.max(bracket.maxMarks - bracket.minMarks, 1))
-  const baseRank = bracket.minRank + ratio * (bracket.maxRank - bracket.minRank)
+  const ratio2 = (adjustedMarks - bracket.minMarks) / (Math.max(bracket.maxMarks - bracket.minMarks, 1))
+  const baseRank = bracket.maxRank - ratio2 * (bracket.maxRank - bracket.minRank)
   const score = marksToScore(clamped)
 
   return {
@@ -94,13 +96,11 @@ export function marksToRank(marks: number, category: string = 'General'): RankPr
   }
 }
 
-export function rankToMarks(targetRank: number, category: string = 'General'): { marks: number; score: number } {
-  void category
-
+export function rankToMarks(targetRank: number, _category: string = 'General'): { marks: number; score: number } {
   for (const entry of rankMapping) {
     if (targetRank >= entry.minRank && targetRank <= entry.maxRank) {
-      const ratio = (targetRank - entry.minRank) / (entry.maxRank - entry.minRank)
-      const marks = entry.minMarks + ratio * (entry.maxMarks - entry.minMarks)
+      const rankRatio = (targetRank - entry.minRank) / (Math.max(entry.maxRank - entry.minRank, 1))
+      const marks = entry.maxMarks - rankRatio * (entry.maxMarks - entry.minMarks)
       return { marks: Math.round(marks * 10) / 10, score: marksToScore(marks) }
     }
   }
@@ -361,7 +361,7 @@ export function calculateTimeAllocation(
 
     return {
       subjectId: subject.id,
-      subjectName: subject.name,
+      subjectName: subject.shortName,
       weightage: subject.weightage,
       allocatedHours: Math.round(baseAllocation * 10) / 10,
       priority,
@@ -400,16 +400,16 @@ export const COLLEGES: College[] = [
   { id: 'iit-jodhpur', name: 'IIT Jodhpur', tier: 'IIT', specializations: ['CSE', 'AI'], city: 'Jodhpur', state: 'Rajasthan', cutoffScore: 650, cutoffSource: 'COAP 2025 round-wise GATE data' },
   { id: 'iit-patna', name: 'IIT Patna', tier: 'IIT', specializations: ['CSE'], city: 'Patna', state: 'Bihar', cutoffScore: 640, cutoffSource: 'COAP institute cut-off reports; planning estimate' },
   { id: 'iit-bhu', name: 'IIT (BHU) Varanasi', tier: 'IIT', specializations: ['CSE', 'AI'], city: 'Varanasi', state: 'Uttar Pradesh', cutoffScore: 690, cutoffSource: 'COAP institute cut-off reports; planning estimate' },
-  { id: 'nit-trichy', name: 'NIT Trichy', tier: 'NIT', specializations: ['CSE'], city: 'Tiruchirappalli', state: 'Tamil Nadu', cutoffScore: 670, cutoffSource: 'CCMT official opening/closing score reports and NIT Trichy admission lists' },
-  { id: 'nit-surathkal', name: 'NIT Surathkal', tier: 'NIT', specializations: ['CSE'], city: 'Mangalore', state: 'Karnataka', cutoffScore: 650, cutoffSource: 'CCMT official opening/closing score reports' },
-  { id: 'nit-warangal', name: 'NIT Warangal', tier: 'NIT', specializations: ['CSE'], city: 'Warangal', state: 'Telangana', cutoffScore: 640, cutoffSource: 'CCMT official opening/closing score reports' },
-  { id: 'nit-calicut', name: 'NIT Calicut', tier: 'NIT', specializations: ['CSE'], city: 'Calicut', state: 'Kerala', cutoffScore: 590, cutoffSource: 'CCMT official opening/closing score reports' },
-  { id: 'nit-durgapur', name: 'NIT Durgapur', tier: 'NIT', specializations: ['CSE'], city: 'Durgapur', state: 'West Bengal', cutoffScore: 560, cutoffSource: 'CCMT official opening/closing score reports' },
-  { id: 'nit-kurukshetra', name: 'NIT Kurukshetra', tier: 'NIT', specializations: ['CSE'], city: 'Kurukshetra', state: 'Haryana', cutoffScore: 570, cutoffSource: 'CCMT official opening/closing score reports' },
-  { id: 'nit-patna', name: 'NIT Patna', tier: 'NIT', specializations: ['CSE'], city: 'Patna', state: 'Bihar', cutoffScore: 520, cutoffSource: 'CCMT official opening/closing score reports' },
-  { id: 'nit-silchar', name: 'NIT Silchar', tier: 'NIT', specializations: ['CSE'], city: 'Silchar', state: 'Assam', cutoffScore: 500, cutoffSource: 'CCMT official opening/closing score reports' },
-  { id: 'mnnit', name: 'MNNIT Allahabad', tier: 'NIT', specializations: ['CSE'], city: 'Prayagraj', state: 'Uttar Pradesh', cutoffScore: 600, cutoffSource: 'CCMT official opening/closing score reports' },
-  { id: 'svnit', name: 'SVNIT Surat', tier: 'NIT', specializations: ['CSE'], city: 'Surat', state: 'Gujarat', cutoffScore: 540, cutoffSource: 'CCMT official opening/closing score reports' },
+  { id: 'nit-trichy', name: 'NIT Trichy', tier: 'NIT', specializations: ['CSE'], city: 'Tiruchirappalli', state: 'Tamil Nadu', cutoffScore: 761, cutoffSource: 'GoClasses COAP/CCMT 2025 archives' },
+  { id: 'nit-surathkal', name: 'NIT Surathkal', tier: 'NIT', specializations: ['CSE'], city: 'Mangalore', state: 'Karnataka', cutoffScore: 720, cutoffSource: 'GoClasses COAP/CCMT 2025 archives' },
+  { id: 'nit-warangal', name: 'NIT Warangal', tier: 'NIT', specializations: ['CSE'], city: 'Warangal', state: 'Telangana', cutoffScore: 735, cutoffSource: 'GoClasses COAP/CCMT 2025 archives' },
+  { id: 'nit-calicut', name: 'NIT Calicut', tier: 'NIT', specializations: ['CSE'], city: 'Calicut', state: 'Kerala', cutoffScore: 660, cutoffSource: 'GoClasses COAP/CCMT 2025 archives' },
+  { id: 'nit-durgapur', name: 'NIT Durgapur', tier: 'NIT', specializations: ['CSE'], city: 'Durgapur', state: 'West Bengal', cutoffScore: 620, cutoffSource: 'GoClasses COAP/CCMT 2025 archives' },
+  { id: 'nit-kurukshetra', name: 'NIT Kurukshetra', tier: 'NIT', specializations: ['CSE'], city: 'Kurukshetra', state: 'Haryana', cutoffScore: 610, cutoffSource: 'GoClasses COAP/CCMT 2025 archives' },
+  { id: 'nit-patna', name: 'NIT Patna', tier: 'NIT', specializations: ['CSE'], city: 'Patna', state: 'Bihar', cutoffScore: 570, cutoffSource: 'GoClasses COAP/CCMT 2025 archives' },
+  { id: 'nit-silchar', name: 'NIT Silchar', tier: 'NIT', specializations: ['CSE'], city: 'Silchar', state: 'Assam', cutoffScore: 540, cutoffSource: 'GoClasses COAP/CCMT 2025 archives' },
+  { id: 'mnnit', name: 'MNNIT Allahabad', tier: 'NIT', specializations: ['CSE'], city: 'Prayagraj', state: 'Uttar Pradesh', cutoffScore: 660, cutoffSource: 'GoClasses COAP/CCMT 2025 archives' },
+  { id: 'svnit', name: 'SVNIT Surat', tier: 'NIT', specializations: ['CSE'], city: 'Surat', state: 'Gujarat', cutoffScore: 590, cutoffSource: 'GoClasses COAP/CCMT 2025 archives' },
   { id: 'iiit-hyderabad', name: 'IIIT Hyderabad', tier: 'IIIT', specializations: ['CSE', 'AI'], city: 'Hyderabad', state: 'Telangana', cutoffScore: 720, cutoffSource: 'Institute admissions are separate from CCMT; planning estimate' },
   { id: 'iiit-bangalore', name: 'IIIT Bangalore', tier: 'IIIT', specializations: ['CSE', 'AI'], city: 'Bangalore', state: 'Karnataka', cutoffScore: 650, cutoffSource: 'Institute admissions are separate from CCMT; planning estimate' },
   { id: 'iiit-delhi', name: 'IIIT Delhi', tier: 'IIIT', specializations: ['CSE', 'AI'], city: 'New Delhi', state: 'Delhi', cutoffScore: 630, cutoffSource: 'Institute admissions are separate from CCMT; planning estimate' },

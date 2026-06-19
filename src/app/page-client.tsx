@@ -9,24 +9,25 @@ import { Button } from "@/components/ui/button"
 interface SubjectInfo {
   id: string
   name: string
+  shortName: string
   color: string
   topics: number
   weightage: number
 }
 
 const subjectData: SubjectInfo[] = [
-  { id: "ga", name: "General Aptitude", color: "#6366f1", topics: 3, weightage: 15 },
-  { id: "em", name: "Engineering Mathematics", color: "#8b5cf6", topics: 5, weightage: 7 },
-  { id: "dm", name: "Discrete Mathematics", color: "#a855f7", topics: 5, weightage: 8 },
-  { id: "dl", name: "Digital Logic", color: "#ec4899", topics: 4, weightage: 5 },
-  { id: "coa", name: "Computer Organization", color: "#f43f5e", topics: 6, weightage: 10 },
-  { id: "pds", name: "Programming & Data Structures", color: "#f97316", topics: 8, weightage: 12 },
-  { id: "algo", name: "Algorithms", color: "#eab308", topics: 7, weightage: 8 },
-  { id: "toc", name: "Theory of Computation", color: "#84cc16", topics: 5, weightage: 8 },
-  { id: "cd", name: "Compiler Design", color: "#22c55e", topics: 7, weightage: 5 },
-  { id: "os", name: "Operating Systems", color: "#14b8a6", topics: 8, weightage: 9 },
-  { id: "db", name: "Databases", color: "#06b6d4", topics: 6, weightage: 8 },
-  { id: "cn", name: "Computer Networks", color: "#3b82f6", topics: 7, weightage: 10 },
+  { id: "ga", name: "General Aptitude", shortName: "GA", color: "#6366f1", topics: 3, weightage: 15 },
+  { id: "em", name: "Engineering Mathematics", shortName: "EM", color: "#8b5cf6", topics: 5, weightage: 7 },
+  { id: "dm", name: "Discrete Mathematics", shortName: "DM", color: "#a855f7", topics: 5, weightage: 8 },
+  { id: "dl", name: "Digital Logic", shortName: "DL", color: "#ec4899", topics: 4, weightage: 5 },
+  { id: "coa", name: "Computer Organization", shortName: "COA", color: "#f43f5e", topics: 6, weightage: 10 },
+  { id: "pds", name: "Programming & Data Structures", shortName: "PDS", color: "#f97316", topics: 8, weightage: 12 },
+  { id: "algo", name: "Algorithms", shortName: "Algo.", color: "#eab308", topics: 7, weightage: 8 },
+  { id: "toc", name: "Theory of Computation", shortName: "TOC", color: "#84cc16", topics: 5, weightage: 8 },
+  { id: "cd", name: "Compiler Design", shortName: "CD", color: "#22c55e", topics: 7, weightage: 5 },
+  { id: "os", name: "Operating Systems", shortName: "OS", color: "#14b8a6", topics: 8, weightage: 9 },
+  { id: "db", name: "Databases", shortName: "DB", color: "#06b6d4", topics: 6, weightage: 8 },
+  { id: "cn", name: "Computer Networks", shortName: "CN", color: "#3b82f6", topics: 7, weightage: 10 },
 ]
 
 const totalTopics = subjectData.reduce((s, sub) => s + sub.topics, 0)
@@ -188,7 +189,7 @@ export default function PageClient() {
                         className="h-2 w-2 shrink-0 rounded-full"
                         style={{ backgroundColor: sub.color }}
                       />
-                      <span className="flex-1">{sub.name}</span>
+                      <span className="flex-1">{sub.shortName}</span>
                       <span className="font-mono text-xs tabular-nums text-muted-foreground">
                         {sub.topics} topics
                       </span>

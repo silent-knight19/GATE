@@ -140,7 +140,7 @@ export function SubjectDetail({ subject }: { subject: Subject }) {
         </div>
         <div className="rounded-xl glass p-3 text-center">
           <p className="text-xs text-muted-foreground">Study Hours</p>
-          <p className="text-xl font-bold tabular-nums">{subHours}h</p>
+          <p className="text-xl font-bold tabular-nums">{subHours.toFixed(2)}h</p>
           <p className="text-[10px] text-muted-foreground">logged</p>
         </div>
         <div className="rounded-xl glass p-3 text-center">

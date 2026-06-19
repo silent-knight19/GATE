@@ -61,7 +61,7 @@ export function MockTestLogger() {
   const [subjectBreakdown, setSubjectBreakdown] = useState<SubjectEntry[]>([])
   const [errors, setErrors] = useState<ErrorEntry[]>([])
 
-  const subjectNames = syllabus.map((s) => s.name)
+  const subjectNames = syllabus.map((s) => s.shortName)
 
   function addSubjectEntry() {
     setSubjectBreakdown((prev) => [...prev, { subject: "", marks: 0 }])

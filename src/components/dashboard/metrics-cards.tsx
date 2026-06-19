@@ -1,8 +1,9 @@
 "use client"
 
-import { BookOpen, TrendingUp, Zap, BarChart3 } from "lucide-react"
+import { BookOpen, TrendingUp, Zap, BarChart3, RotateCcw, ClipboardCheck } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { useAppStore } from "@/lib/store"
+import { useMemo } from "react"
 
 function ProgressRing({ percent, size = 40, strokeWidth = 4, color }: { percent: number; size?: number; strokeWidth?: number; color?: string }) {
   const r = (size - strokeWidth) / 2
@@ -27,19 +28,9 @@ function ProgressRing({ percent, size = 40, strokeWidth = 4, color }: { percent:
 }
 
 function StatCard({
-  icon,
-  label,
-  value,
-  sub,
-  ring,
-  trend,
+  icon, label, value, sub, ring, trend,
 }: {
-  icon: React.ReactNode
-  label: string
-  value: string
-  sub: string
-  ring?: number
-  trend?: "up" | "down"
+  icon: React.ReactNode; label: string; value: string; sub: string; ring?: number; trend?: "up" | "down"
 }) {
   return (
     <Card className="flex-1 min-w-0">
@@ -77,6 +68,8 @@ export default function MetricsCards() {
   const topicsProgress = useAppStore((s) => s.topicsProgress)
   const tests = useAppStore((s) => s.tests)
   const logs = useAppStore((s) => s.logs)
+  const revisionHistory = useAppStore((s) => s.revisionHistory)
+  const dailyTasks = useAppStore((s) => s.dailyTasks)
 
   const topicList = Object.values(topicsProgress)
   const completed = topicList.filter((s) => s === "completed" || s === "mastered").length
@@ -92,13 +85,20 @@ export default function MetricsCards() {
   }
 
   const totalHours = logs.reduce((sum, l) => sum + l.hours, 0)
+  const weeklyHours = totalHours > 0 ? Math.round(totalHours / Math.max(1, Math.floor((new Date().getTime() - new Date("2026-01-15").getTime()) / 86400000 / 7))) : 0
 
   const scores = tests.map((m) => m.marksObtained)
   const avgScore = scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0
   const bestScore = scores.length > 0 ? Math.max(...scores) : 0
   const trend = scores.length >= 2 ? (scores[scores.length - 1] >= scores[scores.length - 2] ? "up" as const : "down" as const) : undefined
 
-  const weeklyHours = totalHours > 0 ? Math.round(totalHours / 4) : 0
+  const revisedTopics = revisionHistory.length
+  const completionPct = dailyTasks.length > 0
+    ? Math.round(
+        dailyTasks.reduce((s, g) => s + g.completedHours, 0) /
+        Math.max(1, dailyTasks.reduce((s, g) => s + g.totalHours, 0)) * 100
+      )
+    : 0
 
   return (
     <div className="flex flex-wrap gap-3">
@@ -120,7 +120,19 @@ export default function MetricsCards() {
         icon={<Zap className="h-5 w-5" />}
         label="Study Streak"
         value={streak > 0 ? `${streak}d` : "0d"}
-        sub={totalHours > 0 ? `${weeklyHours}h / week` : "No study time logged"}
+        sub={weeklyHours > 0 ? `${weeklyHours.toFixed(2)}h / week avg` : "No study time logged"}
+      />
+      <StatCard
+        icon={<RotateCcw className="h-5 w-5" />}
+        label="Topics Revised"
+        value={revisedTopics > 0 ? `${revisedTopics}` : "0"}
+        sub={revisedTopics > 0 ? `tracked in revision history` : "Start revising topics"}
+      />
+      <StatCard
+        icon={<ClipboardCheck className="h-5 w-5" />}
+        label="Plan Completion"
+        value={completionPct > 0 ? `${completionPct}%` : "—"}
+        sub={dailyTasks.length > 0 ? `${dailyTasks.reduce((s, g) => s + g.completedHours, 0).toFixed(0)}h done` : "Generate a plan"}
       />
     </div>
   )

@@ -11,7 +11,7 @@ import { subDays, format } from "date-fns"
 
 function getSubjectForLog(subjectId: string): string {
   const sub = syllabus.find((s) => s.id === subjectId)
-  return sub?.name || subjectId
+  return sub?.shortName || subjectId
 }
 
 function computeStreak(logs: { date: string }[]): number {
@@ -23,7 +23,7 @@ function computeStreak(logs: { date: string }[]): number {
   for (let i = 0; i < sorted.length; i++) {
     const expected = new Date(today)
     expected.setDate(expected.getDate() - i)
-    const expectedStr = expected.toISOString().split("T")[0]
+    const expectedStr = format(expected, "yyyy-MM-dd")
     if (sorted[i] === expectedStr) {
       streak++
     } else {
@@ -46,7 +46,7 @@ export default function StudyPage() {
     for (const log of logs) {
       const sub = syllabus.find((s) => s.id === log.subjectId)
       if (sub) {
-        hours[sub.name] = (hours[sub.name] || 0) + log.hours
+        hours[sub.shortName] = (hours[sub.shortName] || 0) + log.hours
       }
     }
     return hours
@@ -85,8 +85,8 @@ export default function StudyPage() {
       <div>
         <h1 className="text-lg font-semibold text-foreground">Study Logger</h1>
         <p className="text-xs text-muted-foreground">
-          {totalHours.toFixed(1)}h total &middot; {streak}-day streak &middot;{" "}
-          {weeklyStats.weekHours.toFixed(1)}h this week
+          {totalHours.toFixed(2)}h total &middot; {streak}-day streak &middot;{" "}
+          {weeklyStats.weekHours.toFixed(2)}h this week
         </p>
       </div>
 
@@ -127,7 +127,7 @@ export default function StudyPage() {
                         </p>
                       </div>
                       <span className="shrink-0 font-mono text-xs tabular-nums text-muted-foreground">
-                        {log.hours}h
+                        {log.hours.toFixed(2)}h
                       </span>
                     </div>
                   )
@@ -180,7 +180,7 @@ export default function StudyPage() {
                             {topic?.name || log.topicId}
                           </td>
                           <td className="px-2 py-1.5 text-right font-mono text-xs">
-                            {log.hours}h
+                            {log.hours.toFixed(2)}h
                           </td>
                         </tr>
                       )

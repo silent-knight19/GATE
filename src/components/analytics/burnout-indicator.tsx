@@ -10,14 +10,25 @@ export default function BurnoutIndicator() {
   const tests = useAppStore((s) => s.tests)
 
   const result = useMemo(() => {
-    const dates = [...new Set(logs.map((l) => l.date))].sort().reverse()
-    let streak = 0
+    const dailyHours: Record<string, number> = {}
+    for (const log of logs) {
+      dailyHours[log.date] = (dailyHours[log.date] || 0) + log.hours
+    }
+
+    const sortedDates = Object.keys(dailyHours).sort().reverse()
+    let highIntensityStreak = 0
     const today = new Date()
-    for (let i = 0; i < dates.length; i++) {
+    for (let i = 0; i < sortedDates.length; i++) {
       const expected = new Date(today)
       expected.setDate(expected.getDate() - i)
-      if (dates[i] === expected.toISOString().split("T")[0]) streak++
-      else break
+      const expectedStr = expected.toISOString().split("T")[0]
+      if (sortedDates[i] !== expectedStr) break
+      const hours = dailyHours[sortedDates[i]]
+      if (hours >= 8) {
+        highIntensityStreak++
+      } else if (hours > 0) {
+        break
+      }
     }
 
     const mockTrend = [...tests].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()).map((t) => t.marksObtained)
@@ -25,7 +36,7 @@ export default function BurnoutIndicator() {
       ? Math.round((logs.reduce((s, l) => s + l.hours, 0) / logs.length) * 10) / 10
       : 0
 
-    return calculateBurnoutRisk(streak, mockTrend, avgHours)
+    return calculateBurnoutRisk(highIntensityStreak, mockTrend, avgHours)
   }, [logs, tests])
 
   const colorMap: Record<string, string> = {

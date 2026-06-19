@@ -34,7 +34,7 @@ const SUBJECT_COLORS: Record<string, string> = {
 
 function getSubjectNameForLog(subjectId: string): string | null {
   const sub = syllabus.find((s) => s.id === subjectId)
-  return sub?.name || null
+  return sub?.shortName || null
 }
 
 export function WeeklyChart() {

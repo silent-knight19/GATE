@@ -209,7 +209,7 @@ export function TargetTracker() {
                           className="size-2.5 rounded-full"
                           style={{ backgroundColor: s.color }}
                         />
-                        <span className="font-medium">{s.name}</span>
+                        <span className="font-medium">{s.shortName}</span>
                       </div>
                     </td>
                     <td className="px-3 py-2 font-mono text-xs tabular-nums">

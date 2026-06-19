@@ -1,7 +1,5 @@
 "use client"
 
-"use client"
-
 import { useState } from "react"
 import { usePathname } from "next/navigation"
 import { Sidebar } from "@/components/layout/sidebar"

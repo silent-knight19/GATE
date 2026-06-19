@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { ErrorBoundary } from "@/components/error-boundary";
+import { ErrorMonitor } from "@/components/error-monitor";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/lib/auth-context";
 import { FirestoreSync } from "@/lib/firestore-sync";
@@ -132,14 +134,17 @@ export default function RootLayout({
             })
           }}
         />
-        <ThemeProvider>
-          <TooltipProvider>
-            <AuthProvider>
-              <FirestoreSync />
-              <LayoutClient>{children}</LayoutClient>
-            </AuthProvider>
-          </TooltipProvider>
-        </ThemeProvider>
+        <ErrorMonitor />
+        <ErrorBoundary>
+          <ThemeProvider>
+            <TooltipProvider>
+              <AuthProvider>
+                <FirestoreSync />
+                <LayoutClient>{children}</LayoutClient>
+              </AuthProvider>
+            </TooltipProvider>
+          </ThemeProvider>
+        </ErrorBoundary>
       </body>
     </html>
   );

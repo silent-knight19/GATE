@@ -4,13 +4,7 @@ import { useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useAppStore } from "@/lib/store"
 import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  CartesianGrid,
+  AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine,
 } from "recharts"
 
 interface TooltipPayloadEntry {
@@ -31,6 +25,7 @@ function CustomTooltip({ active, payload }: { active?: boolean; payload?: Toolti
 
 export default function PerformanceChart() {
   const tests = useAppStore((s) => s.tests)
+  const user = useAppStore((s) => s.user)
 
   const data = useMemo(() =>
     [...tests]
@@ -38,11 +33,12 @@ export default function PerformanceChart() {
       .map((m) => ({
         date: new Date(m.date).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
         score: m.marksObtained,
-        total: m.totalMarks,
         source: m.source,
       })),
     [tests],
   )
+
+  const targetScore = user.targetScore
 
   return (
     <Card>
@@ -71,6 +67,11 @@ export default function PerformanceChart() {
                 <XAxis dataKey="date" tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
                 <YAxis domain={[0, 100]} tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
                 <Tooltip content={<CustomTooltip />} />
+                {targetScore > 0 && (
+                  <ReferenceLine y={targetScore} stroke="#22c55e" strokeDasharray="6 4" strokeWidth={1.5}
+                    label={{ value: `Target ${targetScore}%`, position: "right", fontSize: 10, fill: "#22c55e" }}
+                  />
+                )}
                 <Area
                   type="monotone"
                   dataKey="score"

@@ -20,7 +20,7 @@ function CustomTooltip({ active, payload }: { active?: boolean; payload?: { payl
   return (
     <div className="rounded-lg border bg-card p-2 text-xs shadow-lg">
       <p className="font-medium">{d.subject}</p>
-      <p>{d.hours} hours studied</p>
+      <p>{d.hours.toFixed(2)} hours studied</p>
       {d.sessions > 0 && <p className="text-muted-foreground">{d.sessions} sessions</p>}
     </div>
   )
@@ -33,7 +33,7 @@ export default function StudyHoursChart() {
     const subjectMap: Record<string, { hours: number; sessions: number }> = {}
     for (const log of logs) {
       const subject = syllabus.find((s) => s.id === log.subjectId)
-      const name = subject?.name ?? log.subjectId
+      const name = subject?.shortName ?? log.subjectId
       if (!subjectMap[name]) subjectMap[name] = { hours: 0, sessions: 0 }
       subjectMap[name].hours += log.hours
       subjectMap[name].sessions++

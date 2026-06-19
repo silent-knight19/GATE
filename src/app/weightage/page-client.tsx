@@ -71,7 +71,7 @@ export default function WeightagePage() {
         const last = marks2025
         const change = last - first
         return {
-          subject: s.name,
+          subject: s.shortName,
           subjectId: s.id,
           color: s.color,
           2021: marks2021,

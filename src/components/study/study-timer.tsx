@@ -15,71 +15,118 @@ import { Play, Pause, Square } from "lucide-react"
 
 export function StudyTimer() {
   const addLogEntry = useAppStore((s) => s.addLogEntry)
+  const completeTaskOnTimer = useAppStore((s) => s.completeTaskOnTimer)
+  const timerState = useAppStore((s) => s.timerState)
+  const setTimerState = useAppStore((s) => s.setTimerState)
+  const resetTimer = useAppStore((s) => s.resetTimer)
 
   const [elapsedMs, setElapsedMs] = useState(0)
-  const [isRunning, setIsRunning] = useState(false)
-  const [selectedSubjectId, setSelectedSubjectId] = useState("")
-  const [selectedTopicId, setSelectedTopicId] = useState("")
+  const [localSubjectId, setLocalSubjectId] = useState(timerState.selectedSubjectId || "")
+  const [localTopicId, setLocalTopicId] = useState(timerState.selectedTopicId || "")
 
-  const startTimeRef = useRef<number | null>(null)
-  const accumulatedRef = useRef(0)
   const frameRef = useRef<number | null>(null)
+  const startTimeRef = useRef(timerState.startTime)
+  const accumulatedRef = useRef(timerState.accumulated)
 
-  const selectedSubject = syllabus.find((s) => s.id === selectedSubjectId)
+  useEffect(() => {
+    startTimeRef.current = timerState.startTime
+    accumulatedRef.current = timerState.accumulated
+  }, [timerState.startTime, timerState.accumulated])
+
+  const selectedSubject = syllabus.find((s) => s.id === localSubjectId)
   const topics = selectedSubject?.topics || []
 
-  function tick() {
+  const tickRef = useRef<() => void>(undefined)
+
+  const tick = useCallback(() => {
     if (startTimeRef.current === null) return
     const now = Date.now()
     setElapsedMs(accumulatedRef.current + (now - startTimeRef.current))
-    frameRef.current = requestAnimationFrame(tick)
-  }
-
-  useEffect(() => {
-    if (isRunning) {
-      startTimeRef.current = Date.now()
-      frameRef.current = requestAnimationFrame(tick)
-    } else {
-      if (startTimeRef.current !== null) {
-        accumulatedRef.current += Date.now() - startTimeRef.current
-        startTimeRef.current = null
-      }
-      if (frameRef.current !== null) {
-        cancelAnimationFrame(frameRef.current)
-        frameRef.current = null
-      }
-    }
-    return () => {
-      if (frameRef.current !== null) cancelAnimationFrame(frameRef.current)
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isRunning])
-
-  const handleStart = useCallback(() => {
-    if (!selectedTopicId) return
-    setIsRunning(true)
-  }, [selectedTopicId])
-
-  const handlePause = useCallback(() => {
-    setIsRunning(false)
+    frameRef.current = requestAnimationFrame(tickRef.current!)
   }, [])
 
+  useEffect(() => {
+    tickRef.current = tick
+  }, [tick])
+
+  const startFrame = useCallback(() => {
+    if (frameRef.current !== null) cancelAnimationFrame(frameRef.current)
+    frameRef.current = requestAnimationFrame(tickRef.current!)
+  }, [])
+
+  const stopFrame = useCallback(() => {
+    if (frameRef.current !== null) {
+      cancelAnimationFrame(frameRef.current)
+      frameRef.current = null
+    }
+  }, [])
+
+  useEffect(() => {
+    if (timerState.isRunning && timerState.startTime !== null) {
+      startFrame()
+    } else {
+      stopFrame()
+    }
+    return stopFrame
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [timerState.isRunning, timerState.startTime])
+
+  useEffect(() => {
+    function onVisibilityChange() {
+      if (document.hidden) {
+        stopFrame()
+      } else if (timerState.isRunning && timerState.startTime !== null) {
+        startFrame()
+      }
+    }
+    document.addEventListener('visibilitychange', onVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', onVisibilityChange)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [timerState.isRunning, timerState.startTime, startFrame, stopFrame])
+
+  const handleStart = useCallback(() => {
+    if (!localTopicId) return
+    const now = Date.now()
+    setTimerState({
+      isRunning: true,
+      startTime: now,
+      accumulated: 0,
+      selectedSubjectId: localSubjectId,
+      selectedTopicId: localTopicId,
+    })
+    setElapsedMs(0)
+  }, [localTopicId, localSubjectId, setTimerState])
+
+  const handlePause = useCallback(() => {
+    if (timerState.startTime === null) return
+    const now = Date.now()
+    const acc = timerState.accumulated + (now - timerState.startTime)
+    setElapsedMs(acc)
+    setTimerState({
+      isRunning: false,
+      startTime: null,
+      accumulated: acc,
+    })
+  }, [timerState, setTimerState])
+
   const handleStop = useCallback(() => {
-    setIsRunning(false)
-    const finalAccumulated = accumulatedRef.current + (startTimeRef.current !== null ? Date.now() - startTimeRef.current : 0)
+    const now = Date.now()
+    const startTime = startTimeRef.current
+    const accumulated = accumulatedRef.current
+    const finalAccumulated = accumulated + (startTime !== null ? now - startTime : 0)
     const hours = Math.round((finalAccumulated / 60000) * 10) / 10 / 60
-    if (selectedTopicId && selectedSubjectId && hours > 0) {
+    if (localTopicId && localSubjectId && finalAccumulated >= 60000) {
       addLogEntry({
-        subjectId: selectedSubjectId,
-        topicId: selectedTopicId,
+        subjectId: localSubjectId,
+        topicId: localTopicId,
         hours,
         activityType: "study",
       })
+      completeTaskOnTimer(localTopicId)
     }
     setElapsedMs(0)
-    accumulatedRef.current = 0
-    startTimeRef.current = null
-  }, [selectedTopicId, selectedSubjectId, addLogEntry])
+    resetTimer()
+  }, [localTopicId, localSubjectId, addLogEntry, resetTimer])
 
   const totalSeconds = Math.floor(elapsedMs / 1000)
   const displayHours = Math.floor(totalSeconds / 3600)
@@ -88,7 +135,7 @@ export function StudyTimer() {
 
   const loggingHours =
     elapsedMs > 0
-      ? Math.round((elapsedMs / 60000) * 10) / 10 / 60
+      ? elapsedMs / 60000 / 60
       : 0
 
   return (
@@ -101,10 +148,10 @@ export function StudyTimer() {
 
       <div className="flex w-full gap-2">
         <Select
-          value={selectedSubjectId}
+          value={localSubjectId}
           onValueChange={(v) => {
-            setSelectedSubjectId(v ?? "")
-            setSelectedTopicId("")
+            setLocalSubjectId(v ?? "")
+            setLocalTopicId("")
           }}
         >
           <SelectTrigger className="flex-1">
@@ -113,18 +160,18 @@ export function StudyTimer() {
           <SelectContent>
             {syllabus.map((s) => (
               <SelectItem key={s.id} value={s.id}>
-                {s.name}
+                {s.shortName}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
         <Select
-          value={selectedTopicId}
-          onValueChange={(v) => setSelectedTopicId(v ?? "")}
-          disabled={!selectedSubjectId}
+          value={localTopicId}
+          onValueChange={(v) => setLocalTopicId(v ?? "")}
+          disabled={!localSubjectId}
         >
           <SelectTrigger className="flex-1">
-            <SelectValue placeholder={selectedSubjectId ? "Topic" : "Select subject first"} />
+            <SelectValue placeholder={localSubjectId ? "Topic" : "Select subject first"} />
           </SelectTrigger>
           <SelectContent>
             {topics.map((t) => (
@@ -137,11 +184,11 @@ export function StudyTimer() {
       </div>
 
       <div className="flex items-center gap-2">
-        {!isRunning ? (
+        {!timerState.isRunning ? (
           <Button
             variant="default"
             onClick={handleStart}
-            disabled={!selectedTopicId}
+            disabled={!localTopicId}
           >
             <Play className="size-4" />
             Start
@@ -164,7 +211,7 @@ export function StudyTimer() {
 
       {elapsedMs > 0 && (
         <p className="text-xs text-muted-foreground">
-          Logging: {loggingHours >= 1 ? loggingHours.toFixed(1) : `${Math.round(elapsedMs / 60000)} min`}
+          Logging: {loggingHours >= 1 ? loggingHours.toFixed(2) : `${Math.round(elapsedMs / 60000)} min`}
         </p>
       )}
     </div>

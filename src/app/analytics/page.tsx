@@ -3,15 +3,19 @@ import MetricsCards from "@/components/dashboard/metrics-cards"
 import ReadinessScore from "@/components/dashboard/readiness-score"
 import PerformanceChart from "@/components/dashboard/performance-chart"
 import WeakSubjects from "@/components/dashboard/weak-subjects"
-import StudyHoursChart from "@/components/analytics/study-hours-chart"
+import SubjectProgressDetailed from "@/components/analytics/subject-progress-detailed"
+import WeeklyStudyHours from "@/components/analytics/weekly-study-hours"
+import RevisionCoverage from "@/components/analytics/revision-coverage"
+import TaskCompletionRate from "@/components/analytics/task-completion-rate"
+import PlannedVsActual from "@/components/analytics/planned-vs-actual"
+import SubjectErrorBreakdown from "@/components/analytics/subject-error-breakdown"
 import ScoreDistribution from "@/components/analytics/score-distribution"
 import ErrorAnalysis from "@/components/analytics/error-analysis"
 import ConsistencyHeatmap from "@/components/analytics/consistency-heatmap"
-import BurnoutIndicator from "@/components/analytics/burnout-indicator"
 
 export const metadata: Metadata = {
   title: "Analytics & Readiness Insights",
-  description: "Detailed analytics of your GATE 2027 preparation. Monitor readiness scores, study consistency, error distribution, subject weaknesses, and performance charts.",
+  description: "Comprehensive analytics of your GATE 2027 preparation — syllabus progress, study hours, revision coverage, mock test performance, and more.",
   keywords: ["GATE analytics", "GATE 2027 readiness score", "GATE study heatmap", "weak subjects GATE"],
   alternates: {
     canonical: "https://gate-tracker-e1a99.web.app/analytics",
@@ -23,33 +27,44 @@ export default function AnalyticsPage() {
     <div className="space-y-6 p-6">
       <div>
         <h1 className="text-2xl font-bold">Analytics</h1>
-        <p className="text-sm text-muted-foreground">Deep analysis of your preparation</p>
+        <p className="text-sm text-muted-foreground">Your complete preparation journey at a glance</p>
       </div>
 
       <MetricsCards />
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <ReadinessScore />
-        <BurnoutIndicator />
-      </div>
-
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div className="lg:col-span-1">
+          <ReadinessScore />
+        </div>
         <div className="lg:col-span-2">
-          <PerformanceChart />
+          <SubjectProgressDetailed />
         </div>
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <WeakSubjects />
-        <StudyHoursChart />
+        <WeeklyStudyHours />
+        <ConsistencyHeatmap />
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <PerformanceChart />
         <ScoreDistribution />
-        <ErrorAnalysis />
       </div>
 
-      <ConsistencyHeatmap />
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <RevisionCoverage />
+        <WeakSubjects />
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <PlannedVsActual />
+        <TaskCompletionRate />
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <ErrorAnalysis />
+        <SubjectErrorBreakdown />
+      </div>
     </div>
   )
 }

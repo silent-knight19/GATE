@@ -24,13 +24,14 @@ export default function ReadinessScore() {
   const topicsProgress = useAppStore((s) => s.topicsProgress)
   const tests = useAppStore((s) => s.tests)
   const logs = useAppStore((s) => s.logs)
+  const revisionHistory = useAppStore((s) => s.revisionHistory)
 
   const topicList = Object.values(topicsProgress)
   const total = topicList.length
   const completed = topicList.filter((s) => s === "completed" || s === "mastered").length
   const syllabusPct = total > 0 ? Math.round((completed / total) * 100) : 0
   const mockTrend = tests.map((m) => m.marksObtained)
-  const revisionCoverage = 0
+  const revisionCoverage = total > 0 ? Math.round((revisionHistory.length / total) * 100) : 0
 
   const logDates = logs.map((l) => ({
     date: new Date(l.date),

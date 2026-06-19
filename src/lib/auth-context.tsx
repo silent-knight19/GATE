@@ -7,20 +7,25 @@ import { auth, googleProvider, isConfigured } from '@/lib/firebase'
 interface AuthContextValue {
   user: User | null
   loading: boolean
+  error: string | null
   signInWithGoogle: () => Promise<void>
   signOut: () => Promise<void>
+  clearError: () => void
 }
 
 const AuthContext = createContext<AuthContextValue>({
   user: null,
   loading: true,
+  error: null,
   signInWithGoogle: async () => {},
   signOut: async () => {},
+  clearError: () => {},
 })
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!isConfigured || !auth) return
@@ -39,16 +44,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signInWithGoogle = useCallback(async () => {
     if (!auth || !googleProvider) return
-    await signInWithPopup(auth, googleProvider)
+    try {
+      setError(null)
+      await signInWithPopup(auth, googleProvider)
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Sign in failed'
+      if (msg.includes('popup-blocked') || msg.includes('popup closed')) {
+        setError('Popup blocked. Please allow popups for this site or try again.')
+      } else {
+        setError('Sign in failed. Please try again.')
+      }
+      throw err
+    }
   }, [])
 
   const signOut = useCallback(async () => {
     if (!auth) return
-    await firebaseSignOut(auth)
+    try {
+      await firebaseSignOut(auth)
+    } catch (err: unknown) {
+      console.error('Sign out error:', err)
+    }
   }, [])
 
+  const clearError = useCallback(() => setError(null), [])
+
   return (
-    <AuthContext.Provider value={{ user, loading, signInWithGoogle, signOut }}>
+    <AuthContext.Provider value={{ user, loading, error, signInWithGoogle, signOut, clearError }}>
       {children}
     </AuthContext.Provider>
   )

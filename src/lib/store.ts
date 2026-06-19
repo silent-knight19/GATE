@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { format, startOfWeek, addDays } from 'date-fns'
 import type { TopicStatus } from '@/lib/data/syllabus'
 import { syllabus } from '@/lib/data/syllabus'
 
@@ -37,6 +38,10 @@ export interface Task {
   priority: 'high' | 'medium' | 'low'
   completed: boolean
   date: string
+  type: 'study' | 'revision' | 'mock' | 'practice'
+  timeSlot?: 'morning' | 'afternoon' | 'evening'
+  startTime?: string
+  endTime?: string
 }
 
 export interface DailyTaskGroup {
@@ -73,6 +78,11 @@ export interface AppState {
   theme: 'dark' | 'light'
   sidebarOpen: boolean
   onboardingComplete: boolean
+}
+
+export interface SyncStatus {
+  state: 'saved' | 'saving' | 'error'
+  lastError: string | null
 }
 
 export interface UserProfile {
@@ -119,10 +129,15 @@ interface AppStore {
   dailyTasks: DailyTaskGroup[]
   weeklyTargets: WeeklyTarget[]
   generateDailyTasks: (date?: string) => void
+  clearAllTasks: () => void
   completeTask: (groupId: string, taskId: string) => void
-  generateWeeklyPlan: () => void
+  completeTaskOnTimer: (topicId: string) => void
+  addCustomTask: (task: Omit<Task, 'id'>) => void
+  updateTask: (groupDate: string, taskId: string, updates: Partial<Omit<Task, 'id'>>) => void
+  removeTask: (groupDate: string, taskId: string) => void
   getTodayTasks: () => DailyTaskGroup | undefined
   getUpcomingTasks: () => DailyTaskGroup[]
+  getWeekDates: (date?: Date) => string[]
 
   plannerSettings: PlannerSettings
   updateSettings: (settings: Partial<PlannerSettings>) => void
@@ -133,10 +148,29 @@ interface AppStore {
   getTopicsNeedingRevision: () => RevisionEntry[]
   getStalenessMap: () => Record<string, number>
 
+  syncStatus: SyncStatus
+  setSyncStatus: (status: Partial<SyncStatus>) => void
+
   appState: AppState
   toggleTheme: () => void
   toggleSidebar: () => void
   completeOnboarding: () => void
+
+  timerState: {
+    startTime: number | null
+    accumulated: number
+    isRunning: boolean
+    selectedSubjectId: string
+    selectedTopicId: string
+  }
+  setTimerState: (state: Partial<{
+    startTime: number | null
+    accumulated: number
+    isRunning: boolean
+    selectedSubjectId: string
+    selectedTopicId: string
+  }>) => void
+  resetTimer: () => void
 }
 
 function getAllTopicIds(): string[] {
@@ -152,6 +186,26 @@ function getDayName(dateStr: string): string {
   return days[new Date(dateStr).getDay()]
 }
 
+const initialTimerState = {
+  startTime: null as number | null,
+  accumulated: 0,
+  isRunning: false,
+  selectedSubjectId: '',
+  selectedTopicId: '',
+}
+
+export function stripFunctions(state: AppStore): Record<string, unknown> {
+  const allowed: (keyof AppStore)[] = [
+    'user', 'topicsProgress', 'logs', 'tests', 'dailyTasks',
+    'weeklyTargets', 'plannerSettings', 'revisionHistory', 'appState',
+  ]
+  const result: Record<string, unknown> = {}
+  for (const key of allowed) {
+    result[key] = state[key]
+  }
+  return result
+}
+
 export const useAppStore = create<AppStore>()(
   persist(
     (set, get) => {
@@ -164,13 +218,13 @@ export const useAppStore = create<AppStore>()(
         user: {
           name: '',
           email: '',
-          category: 'General',
+          category: '',
           college: '',
           year: 2027,
           working: false,
           workHours: 0,
-          studyHours: 6,
-          targetRank: 500,
+          studyHours: 0,
+          targetRank: 0,
           targetScore: 0,
           targetCollege: '',
         },
@@ -243,7 +297,7 @@ export const useAppStore = create<AppStore>()(
 
         addLogEntry: (entry) =>
           set(state => ({
-            logs: [...state.logs, { ...entry, date: new Date().toISOString().split('T')[0] }]
+            logs: [...state.logs, { ...entry, date: format(new Date(), 'yyyy-MM-dd') }]
           })),
 
         removeLogEntry: (index) =>
@@ -279,7 +333,7 @@ export const useAppStore = create<AppStore>()(
           for (const log of get().logs) {
             for (const subject of syllabus) {
               if (subject.id === log.subjectId) {
-                hours[subject.name] = (hours[subject.name] || 0) + log.hours
+                hours[subject.shortName] = (hours[subject.shortName] || 0) + log.hours
                 break
               }
             }
@@ -343,58 +397,124 @@ export const useAppStore = create<AppStore>()(
         weeklyTargets: [],
 
         generateDailyTasks: (date?: string) => {
-          const targetDate = date || new Date().toISOString().split('T')[0]
+          const refDate = date ? new Date(date + 'T00:00:00') : new Date()
+          const mon = startOfWeek(refDate, { weekStartsOn: 1 })
+          const weekDates: string[] = Array.from({ length: 7 }, (_, i) => format(addDays(mon, i), 'yyyy-MM-dd'))
+
           const progress = get().topicsProgress
           const weak = get().plannerSettings.weakSubjects
           const strong = get().plannerSettings.strongSubjects
+          const availableHours = get().plannerSettings.availableHours
 
-          const pendingTopics: Array<{ subjectId: string; topicId: string; topicName: string }> = []
+          const revisionHistory = get().revisionHistory
+          const topicRevisionDate: Record<string, string> = {}
+          const topicConfidence: Record<string, number> = {}
+          for (const r of revisionHistory) {
+            topicRevisionDate[r.topicId] = r.lastRevised
+            topicConfidence[r.topicId] = r.confidence
+          }
+
+          const pendingTopics: Array<{ subjectId: string; topicId: string; topicName: string; score: number }> = []
+          const now = new Date()
           for (const subject of syllabus) {
             for (const topic of subject.topics) {
               const status = progress[topic.id]
+              if (status === 'completed' || status === 'mastered') {
+                const lastRev = topicRevisionDate[topic.id]
+                if (lastRev) {
+                  const days = Math.round((now.getTime() - new Date(lastRev).getTime()) / 86400000)
+                  const conf = topicConfidence[topic.id] || 3
+                  let threshold = conf >= 4 ? 14 : conf >= 3 ? 7 : 3
+                  if (days >= threshold) {
+                    pendingTopics.push({ subjectId: subject.id, topicId: topic.id, topicName: `Revise ${topic.name}`, score: -5 })
+                  }
+                } else {
+                  pendingTopics.push({ subjectId: subject.id, topicId: topic.id, topicName: `Revise ${topic.name}`, score: -5 })
+                }
+                continue
+              }
               if (status === 'not_started' || status === 'in_progress') {
-                pendingTopics.push({
-                  subjectId: subject.id,
-                  topicId: topic.id,
-                  topicName: topic.name,
-                })
+                let score = 0
+                if (weak.includes(subject.id)) score -= 3
+                if (strong.includes(subject.id)) score += 1
+                pendingTopics.push({ subjectId: subject.id, topicId: topic.id, topicName: topic.name, score })
               }
             }
           }
 
-          pendingTopics.sort((a, b) => {
-            const aWeak = weak.includes(a.subjectId) ? -1 : 0
-            const bWeak = weak.includes(b.subjectId) ? -1 : 0
-            if (aWeak !== bWeak) return aWeak - bWeak
-            const aStrong = strong.includes(a.subjectId) ? 1 : 0
-            const bStrong = strong.includes(b.subjectId) ? 1 : 0
-            if (aStrong !== bStrong) return aStrong - bStrong
-            return 0
-          })
+          pendingTopics.sort((a, b) => a.score - b.score)
 
-          const tasks: Task[] = pendingTopics.slice(0, 4).map((t, i) => ({
-            id: generateId(),
-            title: `Study ${t.topicName}`,
-            subjectId: t.subjectId,
-            topicId: t.topicId,
-            estimatedHours: i === 0 ? 2 : 1.5,
-            priority: i === 0 ? 'high' : i <= 2 ? 'medium' : 'low',
-            completed: false,
-            date: targetDate,
-          }))
+          const slots: { key: 'morning' | 'afternoon' | 'evening'; label: string; maxHours: number }[] = []
+          if (availableHours >= 1.5) {
+            const m = Math.min(2, availableHours * 0.35)
+            slots.push({ key: 'morning', label: 'Morning', maxHours: Math.round(m * 2) / 2 })
+          }
+          if (availableHours >= 3) {
+            const a = Math.min(2.5, availableHours * 0.4)
+            slots.push({ key: 'afternoon', label: 'Afternoon', maxHours: Math.round(a * 2) / 2 })
+          }
+          if (availableHours >= 4.5) {
+            const e = Math.min(1.5, availableHours * 0.25)
+            slots.push({ key: 'evening', label: 'Evening', maxHours: Math.round(e * 2) / 2 })
+          }
+          if (slots.length === 0) {
+            slots.push({ key: 'morning', label: 'Morning', maxHours: availableHours })
+          }
+
+          const subjectDayCount: Record<string, Set<number>> = {}
+          const topicIndexRef: Record<string, number> = {}
+          const dailyGroups: DailyTaskGroup[] = []
+          let topicIdx = 0
+
+          for (let d = 0; d < 7; d++) {
+            const dayDate = weekDates[d]
+            const dayTasks: Task[] = []
+
+            for (const slot of slots) {
+              if (topicIdx >= pendingTopics.length) break
+              let hoursLeft = slot.maxHours
+              while (hoursLeft >= 0.5 && topicIdx < pendingTopics.length) {
+                const t = pendingTopics[topicIdx]
+                const taskHours = Math.min(hoursLeft, 1.5)
+                const isRevision = t.topicName.startsWith('Revise ')
+                const type: Task['type'] = isRevision ? 'revision' : 'study'
+                const priority: Task['priority'] = t.score <= -3 ? 'high' : t.score <= 0 ? 'medium' : 'low'
+
+                dayTasks.push({
+                  id: generateId(),
+                  title: isRevision ? t.topicName : `Study ${t.topicName}`,
+                  subjectId: t.subjectId,
+                  topicId: t.topicId,
+                  estimatedHours: Math.round(taskHours * 2) / 2,
+                  priority,
+                  completed: false,
+                  date: dayDate,
+                  type,
+                  timeSlot: slot.key,
+                })
+
+                hoursLeft -= taskHours
+                topicIdx++
+                if (!isRevision) break
+              }
+            }
+
+            dailyGroups.push({
+              date: dayDate,
+              dayName: format(new Date(dayDate + 'T00:00:00'), 'EEEE'),
+              tasks: dayTasks,
+              totalHours: dayTasks.reduce((s, t) => s + t.estimatedHours, 0),
+              completedHours: 0,
+            })
+          }
 
           set(state => {
-            const existing = state.dailyTasks.filter(g => g.date !== targetDate)
-            const group: DailyTaskGroup = {
-              date: targetDate,
-              dayName: getDayName(targetDate),
-              tasks,
-              totalHours: tasks.reduce((s, t) => s + t.estimatedHours, 0),
-              completedHours: 0,
-            }
-            return { dailyTasks: [...existing, group] }
+            const existing = state.dailyTasks.filter(g => !weekDates.includes(g.date))
+            return { dailyTasks: [...existing, ...dailyGroups] }
           })
         },
+
+        clearAllTasks: () => set({ dailyTasks: [] }),
 
         completeTask: (groupId, taskId) =>
           set(state => ({
@@ -411,61 +531,123 @@ export const useAppStore = create<AppStore>()(
             })
           })),
 
-        generateWeeklyPlan: () => {
-          const weak = get().plannerSettings.weakSubjects
-          const strong = get().plannerSettings.strongSubjects
-          const availableHours = get().plannerSettings.availableHours
-
-          const subjectsHours: Record<string, number> = {}
-          for (const subject of syllabus) {
-            const isWeak = weak.includes(subject.id)
-            const isStrong = strong.includes(subject.id)
-            const weight = isWeak ? 0.15 : isStrong ? 0.05 : 0.1
-            subjectsHours[subject.id] = Math.round(availableHours * weight * 7 * 10) / 10
-          }
-
-          const totalPlanned = Object.values(subjectsHours).reduce((a, b) => a + b, 0)
-          const factor = (availableHours * 7) / (totalPlanned || 1)
-          for (const key of Object.keys(subjectsHours)) {
-            subjectsHours[key] = Math.round(subjectsHours[key] * factor * 10) / 10
-          }
-
-          const today = new Date()
-          const weekStart = new Date(today)
-          weekStart.setDate(today.getDate() - today.getDay())
-          const weekEnd = new Date(weekStart)
-          weekEnd.setDate(weekStart.getDate() + 6)
-
-          const target: WeeklyTarget = {
-            weekStart: weekStart.toISOString().split('T')[0],
-            weekEnd: weekEnd.toISOString().split('T')[0],
-            totalHours: availableHours * 7,
-            subjects: subjectsHours,
-            mockTestPlanned: today.getDay() === 6 || today.getDay() === 0,
-          }
-
-          set(state => ({
-            weeklyTargets: [...state.weeklyTargets, target]
-          }))
+        /**
+         * Adds a manually created task to the planner.
+         * Creates a new day group if one doesn't exist for the task's date.
+         */
+        addCustomTask: (task) => {
+          const newTask: Task = { ...task, id: generateId() }
+          set(state => {
+            const existing = state.dailyTasks.find(g => g.date === task.date)
+            if (existing) {
+              const updatedTasks = [...existing.tasks, newTask]
+              return {
+                dailyTasks: state.dailyTasks.map(g =>
+                  g.date === task.date
+                    ? {
+                        ...g,
+                        tasks: updatedTasks,
+                        totalHours: updatedTasks.reduce((s, t) => s + t.estimatedHours, 0),
+                        completedHours: updatedTasks.filter(t => t.completed).reduce((s, t) => s + t.estimatedHours, 0),
+                      }
+                    : g
+                ),
+              }
+            }
+            const newGroup: DailyTaskGroup = {
+              date: task.date,
+              dayName: format(new Date(task.date + 'T00:00:00'), 'EEEE'),
+              tasks: [newTask],
+              totalHours: newTask.estimatedHours,
+              completedHours: 0,
+            }
+            return { dailyTasks: [...state.dailyTasks, newGroup] }
+          })
         },
 
+        /**
+         * Updates fields on an existing task.
+         * Recalculates group totals after the update.
+         */
+        updateTask: (groupDate, taskId, updates) =>
+          set(state => ({
+            dailyTasks: state.dailyTasks.map(g => {
+              if (g.date !== groupDate) return g
+              const tasks = g.tasks.map(t =>
+                t.id === taskId ? { ...t, ...updates } : t
+              )
+              return {
+                ...g,
+                tasks,
+                totalHours: tasks.reduce((s, t) => s + t.estimatedHours, 0),
+                completedHours: tasks.filter(t => t.completed).reduce((s, t) => s + t.estimatedHours, 0),
+              }
+            })
+          })),
+
+        /**
+         * Removes a task from a day group.
+         * Removes the group entirely if it becomes empty.
+         */
+        removeTask: (groupDate, taskId) =>
+          set(state => {
+            const updated = state.dailyTasks.map(g => {
+              if (g.date !== groupDate) return g
+              const tasks = g.tasks.filter(t => t.id !== taskId)
+              return {
+                ...g,
+                tasks,
+                totalHours: tasks.reduce((s, t) => s + t.estimatedHours, 0),
+                completedHours: tasks.filter(t => t.completed).reduce((s, t) => s + t.estimatedHours, 0),
+              }
+            }).filter(g => g.tasks.length > 0)
+            return { dailyTasks: updated }
+          }),
+
+        completeTaskOnTimer: (topicId) =>
+          set(state => {
+            const today = format(new Date(), 'yyyy-MM-dd')
+            return {
+              dailyTasks: state.dailyTasks.map(g => {
+                if (g.date !== today) return g
+                const tasks = g.tasks.map(t => {
+                  if (t.topicId === topicId && !t.completed) {
+                    return { ...t, completed: true }
+                  }
+                  return t
+                })
+                return {
+                  ...g,
+                  tasks,
+                  completedHours: tasks.filter(t => t.completed).reduce((s, t) => s + t.estimatedHours, 0),
+                }
+              })
+            }
+          }),
+
         getTodayTasks: () => {
-          const today = new Date().toISOString().split('T')[0]
+          const today = format(new Date(), 'yyyy-MM-dd')
           return get().dailyTasks.find(g => g.date === today)
         },
 
         getUpcomingTasks: () => {
-          const today = new Date().toISOString().split('T')[0]
+          const today = format(new Date(), 'yyyy-MM-dd')
           return get().dailyTasks
             .filter(g => g.date >= today)
             .sort((a, b) => a.date.localeCompare(b.date))
             .slice(0, 7)
         },
 
+        getWeekDates: (date?: Date) => {
+          const ref = date || new Date()
+          const mon = startOfWeek(ref, { weekStartsOn: 1 })
+          return Array.from({ length: 7 }, (_, i) => format(addDays(mon, i), 'yyyy-MM-dd'))
+        },
+
         plannerSettings: {
           availableHours: 6,
-          strongSubjects: ['ga', 'dl'],
-          weakSubjects: ['algo', 'cn', 'cd'],
+          strongSubjects: [],
+          weakSubjects: [],
           preferredStudyTime: 'morning',
         },
 
@@ -541,8 +723,41 @@ export const useAppStore = create<AppStore>()(
           set(state => ({
             appState: { ...state.appState, onboardingComplete: true }
           })),
+
+        syncStatus: { state: 'saved', lastError: null },
+  setSyncStatus: (status) =>
+    set(state => ({
+      syncStatus: { ...state.syncStatus, ...status }
+    })),
+
+  timerState: { ...initialTimerState },
+        setTimerState: (partial) =>
+          set(state => ({
+            timerState: { ...state.timerState, ...partial }
+          })),
+        resetTimer: () =>
+          set({
+            timerState: { ...initialTimerState }
+          }),
       }
     },
-    { name: 'gateee-store' }
+    {
+      name: 'gateee-store',
+      partialize: (state) => {
+        const { timerState: _timer, ...rest } = state
+        return rest
+      },
+      merge: (persisted, current) => {
+        const p = persisted as Partial<AppStore>
+        return {
+          ...current,
+          ...p,
+          topicsProgress: {
+            ...current.topicsProgress,
+            ...(p.topicsProgress || {}),
+          },
+        }
+      },
+    }
   )
 )

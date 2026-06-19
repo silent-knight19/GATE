@@ -133,7 +133,7 @@ export default function ProgressPage() {
             </div>
             <div>
               <p className="text-xs text-muted-foreground">Study Hours</p>
-              <p className="text-lg font-bold tabular-nums">{totalHours}h</p>
+              <p className="text-lg font-bold tabular-nums">{totalHours.toFixed(2)}h</p>
               <p className="text-[10px] text-muted-foreground">{streak}-day streak</p>
             </div>
           </CardContent>
@@ -213,7 +213,7 @@ export default function ProgressPage() {
                       <div className="flex items-center gap-2 min-w-0">
                         <div className="size-2.5 shrink-0 rounded-full" style={{ backgroundColor: sub.color }} />
                         <Link href={`/subjects/${sub.id}`} className="text-sm font-medium truncate hover:underline" onClick={(e) => e.stopPropagation()}>
-                          {getShortSubjectName(sub.name)}
+                          {sub.shortName}
                         </Link>
                         {p.stats && (
                           <span className="text-[10px] text-muted-foreground shrink-0">~{p.stats.avgMarks} marks</span>
@@ -227,7 +227,7 @@ export default function ProgressPage() {
                           <span className="text-xs tabular-nums text-muted-foreground w-8 text-right">{p.percent}%</span>
                         </div>
                         <span className="text-xs text-muted-foreground tabular-nums">{p.completed}/{p.total}</span>
-                        <span className="text-[10px] text-muted-foreground tabular-nums">{p.subHours}h</span>
+                        <span className="text-[10px] text-muted-foreground tabular-nums">{p.subHours.toFixed(2)}h</span>
                         {expandedSubject === sub.id ? <ChevronDown className="size-3.5 text-muted-foreground" /> : <ChevronRight className="size-3.5 text-muted-foreground" />}
                       </div>
                     </div>
