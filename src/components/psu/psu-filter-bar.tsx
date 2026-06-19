@@ -1,5 +1,6 @@
 'use client'
 
+import React from "react"
 import { Input } from '@/components/ui/input'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select'
 import { SearchIcon } from 'lucide-react'
@@ -17,7 +18,7 @@ interface PsuFilterBarProps {
   onSortChange: (v: SortKey) => void
 }
 
-export function PsuFilterBar({
+export const PsuFilterBar = React.memo(function PsuFilterBar({
   search,
   onSearchChange,
   statusFilter,
@@ -68,4 +69,4 @@ export function PsuFilterBar({
       </Select>
     </div>
   )
-}
+})

@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo } from "react"
+import React, { useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useAppStore } from "@/lib/store"
 import {
@@ -23,7 +23,7 @@ function CustomTooltip({ active, payload }: { active?: boolean; payload?: Toolti
   )
 }
 
-export default function PerformanceChart() {
+function PerformanceChart() {
   const tests = useAppStore((s) => s.tests)
   const user = useAppStore((s) => s.user)
 
@@ -87,3 +87,5 @@ export default function PerformanceChart() {
     </Card>
   )
 }
+
+export default React.memo(PerformanceChart)

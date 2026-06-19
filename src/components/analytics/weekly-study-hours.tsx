@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo } from "react"
+import React, { useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useAppStore } from "@/lib/store"
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine } from "recharts"
@@ -22,7 +22,7 @@ function CustomTooltip({ active, payload }: { active?: boolean; payload?: Toolti
   )
 }
 
-export default function WeeklyStudyHours() {
+function WeeklyStudyHours() {
   const logs = useAppStore((s) => s.logs)
   const plannerSettings = useAppStore((s) => s.plannerSettings)
 
@@ -85,3 +85,5 @@ export default function WeeklyStudyHours() {
     </Card>
   )
 }
+
+export default React.memo(WeeklyStudyHours)

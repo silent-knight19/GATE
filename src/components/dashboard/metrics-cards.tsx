@@ -3,7 +3,7 @@
 import { BookOpen, TrendingUp, Zap, BarChart3, RotateCcw, ClipboardCheck } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { useAppStore } from "@/lib/store"
-import { useMemo } from "react"
+import React, { useMemo } from "react"
 
 function ProgressRing({ percent, size = 40, strokeWidth = 4, color }: { percent: number; size?: number; strokeWidth?: number; color?: string }) {
   const r = (size - strokeWidth) / 2
@@ -64,7 +64,7 @@ function StatCard({
   )
 }
 
-export default function MetricsCards() {
+function MetricsCards() {
   const topicsProgress = useAppStore((s) => s.topicsProgress)
   const tests = useAppStore((s) => s.tests)
   const logs = useAppStore((s) => s.logs)
@@ -137,3 +137,5 @@ export default function MetricsCards() {
     </div>
   )
 }
+
+export default React.memo(MetricsCards)

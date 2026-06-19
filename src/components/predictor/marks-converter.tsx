@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import React, { useState, useMemo } from 'react'
 import { marksToRank } from '@/lib/calculators'
 import { categoryQualifyingRatios, gateCs2025Stats, rankMapping } from '@/lib/data/rankMapping'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
@@ -12,7 +12,7 @@ import { Info } from 'lucide-react'
 
 const CATEGORIES = ['General', 'OBC', 'EWS', 'SC', 'ST', 'PwD'] as const
 
-export function MarksConverter() {
+export const MarksConverter = React.memo(function MarksConverter() {
   const [marks, setMarks] = useState(60)
   const [category, setCategory] = useState('General')
 
@@ -166,4 +166,4 @@ export function MarksConverter() {
       </Card>
     </div>
   )
-}
+})

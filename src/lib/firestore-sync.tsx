@@ -38,6 +38,8 @@ export function FirestoreSync() {
    * Saves the current store state to Firestore.
    * On failure, automatically retries up to MAX_RETRIES times.
    */
+  const doSaveRef = useRef<((state: ReturnType<typeof useAppStore.getState>) => Promise<void>) | null>(null)
+
   const doSave = useCallback(async (state: ReturnType<typeof useAppStore.getState>) => {
     if (!db || !user) return
     try {
@@ -51,13 +53,12 @@ export function FirestoreSync() {
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Unknown save error'
 
-      // Retry on transient failures (network errors, timeouts)
       if (retryCountRef.current < MAX_RETRIES) {
         retryCountRef.current++
         pendingSaveRef.current = true
         setSyncStatus({ state: 'saving', lastError: `Retrying (${retryCountRef.current}/${MAX_RETRIES})...` })
         retryTimerRef.current = setTimeout(() => {
-          doSave(useAppStore.getState())
+          doSaveRef.current?.(useAppStore.getState())
         }, RETRY_DELAY_MS)
       } else {
         retryCountRef.current = 0
@@ -66,6 +67,10 @@ export function FirestoreSync() {
       }
     }
   }, [user, setSyncStatus])
+
+  useEffect(() => {
+    doSaveRef.current = doSave
+  }, [doSave])
 
   /**
    * Flushes any pending save from localStorage that was stashed
@@ -168,7 +173,7 @@ export function FirestoreSync() {
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
       pendingSaveRef.current = true
       retryCountRef.current = 0
-      saveTimerRef.current = setTimeout(() => doSave(state), SAVE_DEBOUNCE_MS)
+      saveTimerRef.current = setTimeout(() => doSaveRef.current?.(state), SAVE_DEBOUNCE_MS)
     })
 
     return () => {

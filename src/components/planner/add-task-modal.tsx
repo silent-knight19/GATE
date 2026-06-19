@@ -76,6 +76,7 @@ export function AddTaskModal({
 
   // Reset form when modal opens or editingTask changes
   useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect */
     if (!open) return
     if (editingTask) {
       setSubjectId(editingTask.subjectId)
@@ -97,6 +98,7 @@ export function AddTaskModal({
       setDate(defaultDate || todayStr)
     }
     setShowConfirmDelete(false)
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, [open, editingTask, defaultDate, todayStr])
 
   const topics = useMemo(() => {
@@ -106,12 +108,14 @@ export function AddTaskModal({
 
   // Auto-generate title when subject/topic/type changes (only for new tasks)
   useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect */
     if (editingTask) return
     if (!topicId) return
     const topic = topics.find((t) => t.id === topicId)
     if (!topic) return
     const prefix = type === "revision" ? "Revise" : type === "mock" ? "Mock:" : "Study"
     setTitle(`${prefix} ${topic.name}`)
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, [topicId, type, topics, editingTask])
 
   function handleSave() {

@@ -5,7 +5,7 @@ import { useAppStore } from "@/lib/store"
 import { syllabus } from "@/lib/data/syllabus"
 import { getShortSubjectName } from "@/lib/data/subject-stats"
 import Link from "next/link"
-import { useEffect, useState } from "react"
+import React, { useEffect, useState } from "react"
 import {
   Brain,
   Pi,
@@ -185,7 +185,7 @@ function OverallRing({ percent }: { percent: number }) {
   )
 }
 
-export default function SyllabusOverview() {
+function SyllabusOverview() {
   const topicsProgress = useAppStore((s) => s.topicsProgress)
 
   const subjects = syllabus.map((subject, i) => {
@@ -236,7 +236,7 @@ export default function SyllabusOverview() {
             <Link
               key={subject.id}
               href={`/subjects/${subject.id}`}
-              className="group relative overflow-hidden rounded-xl border bg-card p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
+              className="group relative overflow-hidden rounded-xl border bg-card p-4 transition-[transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:shadow-md"
             >
               <div
                 className="absolute inset-x-0 top-0 h-1 rounded-t-xl"
@@ -276,3 +276,5 @@ export default function SyllabusOverview() {
     </div>
   )
 }
+
+export default React.memo(SyllabusOverview)

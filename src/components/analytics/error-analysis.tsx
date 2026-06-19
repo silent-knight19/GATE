@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo } from "react"
+import React, { useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useAppStore } from "@/lib/store"
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts"
@@ -22,7 +22,7 @@ function CustomTooltip({ active, payload }: { active?: boolean; payload?: Toolti
   )
 }
 
-export default function ErrorAnalysis() {
+function ErrorAnalysis() {
   const tests = useAppStore((s) => s.tests)
 
   const data = useMemo(() => {
@@ -77,3 +77,5 @@ export default function ErrorAnalysis() {
     </Card>
   )
 }
+
+export default React.memo(ErrorAnalysis)

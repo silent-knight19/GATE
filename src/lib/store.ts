@@ -243,10 +243,9 @@ export const useAppStore = create<AppStore>()(
           })),
 
         cycleTopicStatus: (topicId) => {
-          const current = get().topicsProgress[topicId]
-          if (current === 'mastered') return
+          const current = get().topicsProgress[topicId] || 'not_started'
           const order: TopicStatus[] = ['not_started', 'in_progress', 'completed', 'mastered']
-          const nextIndex = order.indexOf(current) + 1
+          const nextIndex = (order.indexOf(current) + 1) % order.length
           set(state => ({
             topicsProgress: { ...state.topicsProgress, [topicId]: order[nextIndex] }
           }))
@@ -424,7 +423,7 @@ export const useAppStore = create<AppStore>()(
                 if (lastRev) {
                   const days = Math.round((now.getTime() - new Date(lastRev).getTime()) / 86400000)
                   const conf = topicConfidence[topic.id] || 3
-                  let threshold = conf >= 4 ? 14 : conf >= 3 ? 7 : 3
+                  const threshold = conf >= 4 ? 14 : conf >= 3 ? 7 : 3
                   if (days >= threshold) {
                     pendingTopics.push({ subjectId: subject.id, topicId: topic.id, topicName: `Revise ${topic.name}`, score: -5 })
                   }

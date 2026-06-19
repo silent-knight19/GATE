@@ -1,5 +1,6 @@
 "use client"
 
+import React from "react"
 import type { TopicStatus } from "@/lib/data/syllabus"
 import { cn } from "@/lib/utils"
 
@@ -52,11 +53,11 @@ const freqLabels: Record<string, string> = {
   low: "L",
 }
 
-export function TopicRow({ topic, onCycle }: TopicRowProps) {
+export const TopicRow = React.memo(function TopicRow({ topic, onCycle }: TopicRowProps) {
   return (
     <button
       onClick={onCycle}
-      className="flex w-full items-center gap-2 rounded-lg border border-transparent px-2.5 py-1.5 text-left text-sm transition-all hover:border-border hover:bg-muted/50 active:scale-[0.99]"
+      className="flex w-full items-center gap-2 rounded-lg border border-transparent px-2.5 py-1.5 text-left text-sm transition-[transform,border-color,background-color] hover:border-border hover:bg-muted/50 active:scale-[0.99]"
     >
       <div
         className={cn("size-2 shrink-0 rounded-full", statusColors[topic.status])}
@@ -92,4 +93,4 @@ export function TopicRow({ topic, onCycle }: TopicRowProps) {
       </span>
     </button>
   )
-}
+})

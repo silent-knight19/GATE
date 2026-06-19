@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo } from "react"
+import React, { useMemo } from "react"
 import { useAppStore, type RevisionEntry } from "@/lib/store"
 import { syllabus } from "@/lib/data/syllabus"
 import { Clock, Plus, Star } from "lucide-react"
@@ -35,7 +35,7 @@ function daysSince(dateStr: string): number {
  * Panel showing topics that are overdue for spaced revision.
  * Sorted by urgency (most overdue first).
  */
-export function RevisionQueue({ onAddRevisionTask }: RevisionQueueProps) {
+export const RevisionQueue = React.memo(function RevisionQueue({ onAddRevisionTask }: RevisionQueueProps) {
   const revisionHistory = useAppStore((s) => s.revisionHistory)
   const getTopicsNeedingRevision = useAppStore((s) => s.getTopicsNeedingRevision)
 
@@ -127,7 +127,7 @@ export function RevisionQueue({ onAddRevisionTask }: RevisionQueueProps) {
       </CardContent>
     </Card>
   )
-}
+})
 
 /**
  * Renders 1-5 mini stars indicating confidence level.

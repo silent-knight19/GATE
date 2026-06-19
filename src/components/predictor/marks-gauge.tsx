@@ -1,5 +1,7 @@
 'use client'
 
+import React from "react"
+
 const ZONES = [
   { max: 30, color: '#ef4444', label: 'Poor' },
   { max: 50, color: '#f97316', label: 'Below Average' },
@@ -8,7 +10,7 @@ const ZONES = [
   { max: 100, color: '#22c55e', label: 'Excellent' },
 ]
 
-export function MarksGauge({ marks, showLabel = true }: { marks: number; showLabel?: boolean }) {
+export const MarksGauge = React.memo(function MarksGauge({ marks, showLabel = true }: { marks: number; showLabel?: boolean }) {
   const pct = Math.min(100, Math.max(0, marks))
   const zone = ZONES.find(z => pct <= z.max) ?? ZONES[ZONES.length - 1]
 
@@ -45,4 +47,4 @@ export function MarksGauge({ marks, showLabel = true }: { marks: number; showLab
       )}
     </div>
   )
-}
+})

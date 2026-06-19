@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import React, { useState, useMemo } from 'react'
 import { ProgressTrack, ProgressIndicator } from '@/components/ui/progress'
 import { CheckIcon, FileTextIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -34,7 +34,7 @@ const DOCUMENTS: DocumentItem[] = [
 
 const CATEGORIES = ['Examination', 'Academic', 'Identity', 'Institute', 'Other']
 
-export function DocumentChecklist() {
+export const DocumentChecklist = React.memo(function DocumentChecklist() {
   const [checked, setChecked] = useState<Set<string>>(new Set())
 
   const toggle = (id: string) => {
@@ -123,4 +123,4 @@ export function DocumentChecklist() {
       </div>
     </div>
   )
-}
+})

@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo } from "react"
+import React, { useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useAppStore } from "@/lib/store"
 import { syllabus } from "@/lib/data/syllabus"
@@ -26,7 +26,7 @@ function CustomTooltip({ active, payload }: { active?: boolean; payload?: { payl
   )
 }
 
-export default function StudyHoursChart() {
+function StudyHoursChart() {
   const logs = useAppStore((s) => s.logs)
 
   const data = useMemo(() => {
@@ -74,3 +74,5 @@ export default function StudyHoursChart() {
     </Card>
   )
 }
+
+export default React.memo(StudyHoursChart)

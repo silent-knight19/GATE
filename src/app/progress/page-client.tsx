@@ -222,7 +222,7 @@ export default function ProgressPage() {
                       <div className="flex items-center gap-3 shrink-0">
                         <div className="flex items-center gap-1.5">
                           <div className="h-1.5 w-20 overflow-hidden rounded-full bg-secondary">
-                            <div className="h-full rounded-full transition-all" style={{ width: `${p.percent}%`, backgroundColor: sub.color }} />
+                            <div className="h-full rounded-full transition-[width]" style={{ width: `${p.percent}%`, backgroundColor: sub.color }} />
                           </div>
                           <span className="text-xs tabular-nums text-muted-foreground w-8 text-right">{p.percent}%</span>
                         </div>

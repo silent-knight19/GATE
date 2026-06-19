@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo } from "react"
+import React, { useMemo } from "react"
 import { subDays, format } from "date-fns"
 import {
   BarChart,
@@ -37,7 +37,7 @@ function getSubjectNameForLog(subjectId: string): string | null {
   return sub?.shortName || null
 }
 
-export function WeeklyChart() {
+export const WeeklyChart = React.memo(function WeeklyChart() {
   const logs = useAppStore((s) => s.logs)
 
   const weeklyData = useMemo(() => {
@@ -178,4 +178,4 @@ export function WeeklyChart() {
       </div>
     </div>
   )
-}
+})

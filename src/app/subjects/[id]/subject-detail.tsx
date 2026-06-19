@@ -160,7 +160,7 @@ export function SubjectDetail({ subject }: { subject: Subject }) {
         </div>
         <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
           <div
-            className="h-full rounded-full transition-all"
+            className="h-full rounded-full transition-[width]"
             style={{ width: `${percent}%`, backgroundColor: subject.color }}
           />
         </div>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo } from "react"
+import React, { useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useAppStore } from "@/lib/store"
 import {
@@ -46,7 +46,7 @@ function CustomTooltip({ active, payload }: { active?: boolean; payload?: { payl
   )
 }
 
-export default function WeakSubjects() {
+function WeakSubjects() {
   const tests = useAppStore((s) => s.tests)
   const maxPossible = 15
 
@@ -121,3 +121,5 @@ export default function WeakSubjects() {
     </Card>
   )
 }
+
+export default React.memo(WeakSubjects)

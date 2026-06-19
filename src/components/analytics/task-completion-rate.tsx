@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo } from "react"
+import React, { useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useAppStore } from "@/lib/store"
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts"
@@ -23,7 +23,7 @@ function CustomTooltip({ active, payload }: { active?: boolean; payload?: Toolti
   )
 }
 
-export default function TaskCompletionRate() {
+function TaskCompletionRate() {
   const dailyTasks = useAppStore((s) => s.dailyTasks)
 
   const data = useMemo(() => {
@@ -79,3 +79,5 @@ export default function TaskCompletionRate() {
     </Card>
   )
 }
+
+export default React.memo(TaskCompletionRate)

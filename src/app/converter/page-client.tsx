@@ -14,7 +14,7 @@ function Thermometer({ marks }: { marks: number }) {
     <div className="flex items-center gap-3">
       <div className="relative h-4 flex-1 rounded-full bg-muted overflow-hidden">
         <div
-          className="h-full rounded-full transition-all duration-300"
+          className="h-full rounded-full transition-[width] duration-300"
           style={{ width: `${pct}%`, backgroundColor: color }}
         />
       </div>

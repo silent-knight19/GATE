@@ -1,5 +1,6 @@
 "use client"
 
+import React from "react"
 import { cn } from "@/lib/utils"
 
 interface VelocityGaugeProps {
@@ -8,7 +9,7 @@ interface VelocityGaugeProps {
   isOnTrack: boolean
 }
 
-export function VelocityGauge({
+export const VelocityGauge = React.memo(function VelocityGauge({
   currentVelocity,
   requiredVelocity,
   isOnTrack,
@@ -53,4 +54,4 @@ export function VelocityGauge({
       </div>
     </div>
   )
-}
+})

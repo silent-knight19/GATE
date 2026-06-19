@@ -1,11 +1,11 @@
 "use client"
 
-import { useMemo } from "react"
+import React, { useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useAppStore } from "@/lib/store"
 import { calculateBurnoutRisk } from "@/lib/calculators"
 
-export default function BurnoutIndicator() {
+function BurnoutIndicator() {
   const logs = useAppStore((s) => s.logs)
   const tests = useAppStore((s) => s.tests)
 
@@ -90,3 +90,5 @@ export default function BurnoutIndicator() {
     </Card>
   )
 }
+
+export default React.memo(BurnoutIndicator)

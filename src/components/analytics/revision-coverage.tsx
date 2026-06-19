@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo } from "react"
+import React, { useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useAppStore } from "@/lib/store"
 import { syllabus } from "@/lib/data/syllabus"
@@ -23,7 +23,7 @@ function CustomTooltip({ active, payload }: { active?: boolean; payload?: Toolti
   )
 }
 
-export default function RevisionCoverage() {
+function RevisionCoverage() {
   const topicsProgress = useAppStore((s) => s.topicsProgress)
   const revisionHistory = useAppStore((s) => s.revisionHistory)
 
@@ -93,3 +93,5 @@ export default function RevisionCoverage() {
     </Card>
   )
 }
+
+export default React.memo(RevisionCoverage)

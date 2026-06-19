@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import React, { useState, useMemo } from 'react'
 import { marksToRank } from '@/lib/calculators'
 import { COLLEGES, type College } from '@/lib/calculators'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
@@ -93,7 +93,7 @@ function CollegeCard({ college, score }: { college: College; score: number }) {
   )
 }
 
-export function CollegePredictor() {
+export const CollegePredictor = React.memo(function CollegePredictor() {
   const [marks, setMarks] = useState(60)
   const [category, setCategory] = useState('General')
   const [tierFilter, setTierFilter] = useState('all')
@@ -222,4 +222,4 @@ export function CollegePredictor() {
       )}
     </div>
   )
-}
+})

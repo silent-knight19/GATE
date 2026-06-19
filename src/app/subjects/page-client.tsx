@@ -32,7 +32,7 @@ export default function SubjectsPage() {
         </div>
         <div className="h-1 max-w-[120px] flex-1 overflow-hidden rounded-full bg-secondary">
           <div
-            className="h-full rounded-full bg-foreground/70 transition-all"
+            className="h-full rounded-full bg-foreground/70 transition-[width]"
             style={{ width: `${overall.percent}%` }}
           />
         </div>

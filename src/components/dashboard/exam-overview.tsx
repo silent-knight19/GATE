@@ -1,11 +1,11 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import React, { useMemo, useState } from "react"
 import { BookOpen, GraduationCap, Calendar, Clock, BarChart3, ExternalLink } from "lucide-react"
 import { subjectStats, EXAM_INFO, getShortSubjectName } from "@/lib/data/subject-stats"
 import Link from "next/link"
 
-export default function ExamOverview() {
+function ExamOverview() {
   const [sortBy, setSortBy] = useState<"weightage" | "hours">("weightage")
 
   const subjects = useMemo(() => {
@@ -90,7 +90,7 @@ export default function ExamOverview() {
               </Link>
               <div className="flex-1 h-4 overflow-hidden rounded-full bg-secondary relative">
                 <div
-                  className="h-full rounded-full transition-all duration-500 ease-out"
+                  className="h-full rounded-full transition-[width] duration-500 ease-out"
                   style={{
                     width: `${((sortBy === "weightage" ? s.weightage / maxWeightage : s.studyHours / maxHours)) * 100}%`,
                     backgroundColor: s.color
@@ -123,3 +123,5 @@ export default function ExamOverview() {
     </div>
   )
 }
+
+export default React.memo(ExamOverview)

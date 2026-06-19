@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import React, { useState } from "react"
 import {
   Dialog,
   DialogTrigger,
@@ -50,7 +50,7 @@ function genId() {
   return `mt_${Date.now()}_${idCounter}`
 }
 
-export function MockTestLogger() {
+export const MockTestLogger = React.memo(function MockTestLogger() {
   const addMockTest = useAppStore((s) => s.addMockTest)
 
   const [open, setOpen] = useState(false)
@@ -313,4 +313,4 @@ export function MockTestLogger() {
       </DialogContent>
     </Dialog>
   )
-}
+})

@@ -229,7 +229,7 @@ export default function MocksPage() {
                       </span>
                       <div className="h-1.5 w-24 overflow-hidden rounded-full bg-muted sm:w-32">
                         <div
-                          className="h-full rounded-full bg-foreground/70 transition-all"
+                          className="h-full rounded-full bg-foreground/70 transition-[width]"
                           style={{
                             width: `${(score / Math.max(...Object.values(latestSubjectScores), 1)) * 100}%`,
                           }}

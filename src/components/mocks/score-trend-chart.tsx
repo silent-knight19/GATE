@@ -1,5 +1,6 @@
 "use client"
 
+import React from "react"
 import {
   AreaChart,
   Area,
@@ -14,7 +15,7 @@ interface ScoreTrendChartProps {
   data: Array<{ date: string; marksObtained: number }>
 }
 
-export function ScoreTrendChart({ data }: ScoreTrendChartProps) {
+export const ScoreTrendChart = React.memo(function ScoreTrendChart({ data }: ScoreTrendChartProps) {
   if (data.length === 0) {
     return (
       <div className="flex h-64 items-center justify-center text-sm text-muted-foreground">
@@ -77,4 +78,4 @@ export function ScoreTrendChart({ data }: ScoreTrendChartProps) {
       </ResponsiveContainer>
     </div>
   )
-}
+})

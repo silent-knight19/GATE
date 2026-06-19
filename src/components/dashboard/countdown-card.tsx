@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import React, { useState, useEffect } from "react"
 import { getDaysUntilExam } from "@/lib/calculators"
 import { Card } from "@/components/ui/card"
 
@@ -17,7 +17,7 @@ const quotes = [
   "You don't have to be great to start, but you have to start to be great.",
 ]
 
-export default function CountdownCard() {
+function CountdownCard() {
   const [timeLeft, setTimeLeft] = useState(() =>
     getDaysUntilExam(new Date(2027, 1, 6))
   )
@@ -164,3 +164,5 @@ export default function CountdownCard() {
     </Card>
   )
 }
+
+export default React.memo(CountdownCard)

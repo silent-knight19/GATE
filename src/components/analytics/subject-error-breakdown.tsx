@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo } from "react"
+import React, { useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useAppStore } from "@/lib/store"
 import { syllabus } from "@/lib/data/syllabus"
@@ -21,7 +21,7 @@ function CustomTooltip({ active, payload }: { active?: boolean; payload?: Toolti
   )
 }
 
-export default function SubjectErrorBreakdown() {
+function SubjectErrorBreakdown() {
   const tests = useAppStore((s) => s.tests)
 
   const data = useMemo(() => {
@@ -87,3 +87,5 @@ export default function SubjectErrorBreakdown() {
     </Card>
   )
 }
+
+export default React.memo(SubjectErrorBreakdown)

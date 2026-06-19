@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import React, { useState } from "react"
 import type { Subject } from "@/lib/data/syllabus"
 import { ProgressRing } from "@/components/syllabus/progress-ring"
 import { ChevronRight } from "lucide-react"
@@ -19,7 +19,7 @@ const statusColors: Record<string, string> = {
   mastered: "bg-purple-500",
 }
 
-export function SubjectCard({
+export const SubjectCard = React.memo(function SubjectCard({
   subject,
   progress,
   topicStatuses,
@@ -28,7 +28,7 @@ export function SubjectCard({
   const [open, setOpen] = useState(false)
 
   return (
-    <div className="rounded-xl border border-border bg-card transition-all hover:border-foreground/20 hover:shadow-sm">
+    <div className="rounded-xl border border-border bg-card transition-[border-color,box-shadow] hover:border-foreground/20 hover:shadow-sm">
       <button
         onClick={() => setOpen(!open)}
         className="flex w-full items-center gap-3 px-4 py-3 text-left outline-none"
@@ -79,7 +79,7 @@ export function SubjectCard({
               <button
                 key={topic.id}
                 onClick={() => onCycleTopic(topic.id)}
-                className="flex w-full items-center gap-2 rounded-lg border border-transparent px-2 py-1.5 text-left text-sm transition-all hover:border-border hover:bg-muted/50 active:scale-[0.99]"
+                className="flex w-full items-center gap-2 rounded-lg border border-transparent px-2 py-1.5 text-left text-sm transition-[transform,border-color,background-color] hover:border-border hover:bg-muted/50 active:scale-[0.99]"
               >
                 <div
                   className={`size-2 shrink-0 rounded-full ${statusColors[status] || "bg-gray-500"}`}
@@ -138,4 +138,4 @@ export function SubjectCard({
       )}
     </div>
   )
-}
+})

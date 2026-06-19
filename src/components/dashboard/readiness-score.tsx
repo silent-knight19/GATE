@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import React, { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { calculateReadinessScore } from "@/lib/calculators"
 import { useAppStore } from "@/lib/store"
@@ -19,7 +19,7 @@ function getLabel(score: number) {
   return "Ready"
 }
 
-export default function ReadinessScore() {
+function ReadinessScore() {
   const [animatedScore, setAnimatedScore] = useState(0)
   const topicsProgress = useAppStore((s) => s.topicsProgress)
   const tests = useAppStore((s) => s.tests)
@@ -121,3 +121,5 @@ export default function ReadinessScore() {
     </Card>
   )
 }
+
+export default React.memo(ReadinessScore)

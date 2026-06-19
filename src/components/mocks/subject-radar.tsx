@@ -1,5 +1,6 @@
 "use client"
 
+import React from "react"
 import {
   RadarChart,
   Radar,
@@ -13,7 +14,7 @@ interface SubjectRadarProps {
   subjectScores: Record<string, number>
 }
 
-export function SubjectRadar({ subjectScores }: SubjectRadarProps) {
+export const SubjectRadar = React.memo(function SubjectRadar({ subjectScores }: SubjectRadarProps) {
   const data = Object.entries(subjectScores).map(([subject, score]) => ({
     subject,
     score,
@@ -56,4 +57,4 @@ export function SubjectRadar({ subjectScores }: SubjectRadarProps) {
       </ResponsiveContainer>
     </div>
   )
-}
+})

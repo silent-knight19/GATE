@@ -1,5 +1,6 @@
 "use client"
 
+import React from "react"
 import {
   PieChart,
   Pie,
@@ -29,7 +30,7 @@ const LABELS: Record<string, string> = {
   guessed: "Guessed",
 }
 
-export function ErrorPieChart({ errors }: ErrorPieChartProps) {
+export const ErrorPieChart = React.memo(function ErrorPieChart({ errors }: ErrorPieChartProps) {
   if (errors.length === 0) {
     return (
       <div className="flex h-64 items-center justify-center text-sm text-muted-foreground">
@@ -87,4 +88,4 @@ export function ErrorPieChart({ errors }: ErrorPieChartProps) {
       </ResponsiveContainer>
     </div>
   )
-}
+})

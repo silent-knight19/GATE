@@ -1,3 +1,4 @@
+import React from "react"
 import type { Subject } from '@/lib/data/syllabus'
 
 interface SubjectCardProps {
@@ -37,11 +38,11 @@ const volatilityBg: Record<string, string> = {
   volatile: 'bg-red-500/10',
 }
 
-export function SubjectCard({ subject, progress, onClick }: SubjectCardProps) {
+export const SubjectCard = React.memo(function SubjectCard({ subject, progress, onClick }: SubjectCardProps) {
   return (
     <button
       onClick={onClick}
-      className="group/card flex flex-col gap-2 rounded-xl border border-border bg-card p-3 text-left transition-all hover:border-foreground/20 hover:shadow-sm active:scale-[0.98]"
+      className="group/card flex flex-col gap-2 rounded-xl border border-border bg-card p-3 text-left transition-[transform,border-color,box-shadow] hover:border-foreground/20 hover:shadow-sm active:scale-[0.98]"
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 min-w-0">
@@ -83,4 +84,4 @@ export function SubjectCard({ subject, progress, onClick }: SubjectCardProps) {
       </div>
     </button>
   )
-}
+})

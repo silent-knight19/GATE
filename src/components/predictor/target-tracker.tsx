@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import React, { useState, useMemo } from 'react'
 import { marksToRank, rankToMarks } from '@/lib/calculators'
 import { syllabus } from '@/lib/data/syllabus'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
@@ -13,7 +13,7 @@ import { TrendingUp, Target, ArrowUp } from 'lucide-react'
 
 const CATEGORIES = ['General', 'OBC', 'EWS', 'SC', 'ST', 'PwD'] as const
 
-export function TargetTracker() {
+export const TargetTracker = React.memo(function TargetTracker() {
   const [marks, setMarks] = useState(50)
   const [category, setCategory] = useState('General')
   const [targetRank, setTargetRank] = useState(500)
@@ -244,4 +244,4 @@ export function TargetTracker() {
       </Card>
     </div>
   )
-}
+})

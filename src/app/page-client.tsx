@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, type ReactNode } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
@@ -47,34 +47,22 @@ const weightageData = [
   { subject: "General Aptitude", marks: "15" },
 ]
 
-function FadeIn({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
-  const [visible, setVisible] = useState(false)
-  useEffect(() => {
-    const t = setTimeout(() => setVisible(true), delay)
-    return () => clearTimeout(t)
-  }, [delay])
+function FadeIn({ children, delay = 0 }: { children: ReactNode; delay?: number }) {
   return (
     <div
-      className={`transition-all duration-500 ease-out ${
-        visible ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0"
-      }`}
+      className="opacity-0"
+      style={{ animation: `fade-in-up 0.6s ease-out ${delay}ms forwards` }}
     >
       {children}
     </div>
   )
 }
 
-function StaggerRow({ children, index }: { children: React.ReactNode; index: number }) {
-  const [visible, setVisible] = useState(false)
-  useEffect(() => {
-    const t = setTimeout(() => setVisible(true), 80 + index * 30)
-    return () => clearTimeout(t)
-  }, [index])
+function StaggerRow({ children, index }: { children: ReactNode; index: number }) {
   return (
     <div
-      className={`transition-all duration-500 ease-out ${
-        visible ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0"
-      }`}
+      className="opacity-0"
+      style={{ animation: `fade-in-up 0.5s ease-out ${80 + index * 30}ms forwards` }}
     >
       {children}
     </div>
@@ -102,6 +90,7 @@ export default function PageClient() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
+      <style>{`@keyframes fade-in-up{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}`}</style>
       <header className="flex h-14 items-center justify-between border-b border-border px-6">
         <Link href="/" className="font-mono text-sm font-bold tracking-tight text-foreground/60 no-underline">
           GATE CSE 2027

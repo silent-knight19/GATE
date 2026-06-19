@@ -1,5 +1,6 @@
 'use client'
 
+import React from "react"
 import { cn } from '@/lib/utils'
 import { CheckIcon } from 'lucide-react'
 
@@ -13,7 +14,7 @@ interface ProcessStepProps {
   children?: React.ReactNode
 }
 
-export function ProcessStep({
+export const ProcessStep = React.memo(function ProcessStep({
   step,
   title,
   description,
@@ -53,4 +54,4 @@ export function ProcessStep({
       </div>
     </div>
   )
-}
+})

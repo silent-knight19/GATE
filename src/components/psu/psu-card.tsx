@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { Building2, Globe, MapPin, Calendar, Users, IndianRupeeIcon, X } from 'lucide-react'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -35,7 +35,7 @@ function formatSalary(salaryRange: string): string {
   return `₹${digits} LPA`
 }
 
-export function PsuCard({ psu }: PsuCardProps) {
+export const PsuCard = React.memo(function PsuCard({ psu }: PsuCardProps) {
   const [open, setOpen] = useState(false)
   const dialogRef = useRef<HTMLDialogElement>(null)
 
@@ -194,4 +194,4 @@ export function PsuCard({ psu }: PsuCardProps) {
       </dialog>
     </>
   )
-}
+})

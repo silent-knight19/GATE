@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo } from "react"
+import React, { useMemo } from "react"
 import {
   startOfMonth, endOfMonth, startOfWeek, endOfWeek,
   eachDayOfInterval, format, isSameDay, isSameMonth, isFuture, isToday,
@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils"
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 
-export default function ConsistencyHeatmap() {
+function ConsistencyHeatmap() {
   const logs = useAppStore((s) => s.logs)
 
   const { dateHoursMap, totalDays, activeDays, months } = useMemo(() => {
@@ -132,3 +132,5 @@ export default function ConsistencyHeatmap() {
     </Card>
   )
 }
+
+export default React.memo(ConsistencyHeatmap)
