@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { calculateReadinessScore } from "@/lib/calculators"
 import { useAppStore } from "@/lib/store"
@@ -33,17 +33,13 @@ function ReadinessScore() {
   const mockTrend = tests.map((m) => m.marksObtained)
   const revisionCoverage = total > 0 ? Math.round((revisionHistory.length / total) * 100) : 0
 
-  const logDates = logs.map((l) => ({
-    date: new Date(l.date),
-    hoursStudied: l.hours,
-    topicsCovered: [l.topicId],
-  }))
-
-  const last7 = logDates.slice(-7)
-  const avgHoursLastWeek = last7.length > 0
-    ? Math.round((last7.reduce((s, l) => s + l.hoursStudied, 0) / 7) * 10) / 10
-    : 0
-  const consistency = Math.min(avgHoursLastWeek * 12, 100)
+  const consistency = useMemo(() => {
+    const cutoff = Date.now() - 7 * 86400000
+    const logLast7 = logs.filter((l) => new Date(l.date + "T00:00:00").getTime() >= cutoff)
+    const totalHoursLast7 = logLast7.reduce((s, l) => s + l.hours, 0)
+    const avgHoursLastWeek = Math.round((totalHoursLast7 / 7) * 10) / 10
+    return Math.min(avgHoursLastWeek * 12, 100)
+  }, [logs])
 
   const score = syllabusPct === 0 && tests.length === 0 && logs.length === 0
     ? 0

@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo } from "react"
+import { useMemo, useState, useEffect } from "react"
 import { useAppStore } from "@/lib/store"
 import { syllabus } from "@/lib/data/syllabus"
 import { StudyTimer } from "@/components/study/study-timer"
@@ -14,27 +14,21 @@ function getSubjectForLog(subjectId: string): string {
   return sub?.shortName || subjectId
 }
 
-function computeStreak(logs: { date: string }[]): number {
-  if (logs.length === 0) return 0
-  const dateSet = new Set(logs.map((l) => l.date))
-  const sorted = Array.from(dateSet).sort().reverse()
-  let streak = 0
-  const today = new Date()
-  for (let i = 0; i < sorted.length; i++) {
-    const expected = new Date(today)
-    expected.setDate(expected.getDate() - i)
-    const expectedStr = format(expected, "yyyy-MM-dd")
-    if (sorted[i] === expectedStr) {
-      streak++
-    } else {
-      break
-    }
-  }
-  return streak
-}
-
 export default function StudyPage() {
   const logs = useAppStore((s) => s.logs)
+  const getStreak = useAppStore((s) => s.getStreak)
+
+  const [todayDate, setTodayDate] = useState(() => format(new Date(), "yyyy-MM-dd"))
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTodayDate((prev) => {
+        const now = format(new Date(), "yyyy-MM-dd")
+        return now !== prev ? now : prev
+      })
+    }, 60000)
+    return () => clearInterval(interval)
+  }, [])
 
   const totalHours = useMemo(
     () => logs.reduce((sum, l) => sum + l.hours, 0),
@@ -52,14 +46,14 @@ export default function StudyPage() {
     return hours
   }, [logs])
 
-  const streak = useMemo(() => computeStreak(logs), [logs])
+  const streak = useMemo(() => getStreak(), [getStreak, logs])
 
   const todayLogs = useMemo(
     () =>
       logs
-        .filter((l) => l.date === format(new Date(), "yyyy-MM-dd"))
+        .filter((l) => l.date === todayDate)
         .sort((a, b) => b.hours - a.hours),
-    [logs]
+    [logs, todayDate]
   )
 
   const recentLogs = useMemo(

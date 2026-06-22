@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { format, startOfWeek, addDays } from 'date-fns'
+import { format, startOfWeek, addDays, subDays } from 'date-fns'
 import type { TopicStatus } from '@/lib/data/syllabus'
 import { syllabus } from '@/lib/data/syllabus'
 
@@ -308,18 +308,13 @@ export const useAppStore = create<AppStore>()(
           const logs = get().logs
           if (logs.length === 0) return 0
           const dateSet = new Set(logs.map(l => l.date))
-          const sorted = Array.from(dateSet).sort().reverse()
           let streak = 0
           const today = new Date()
-          for (let i = 0; i < sorted.length; i++) {
-            const expected = new Date(today)
-            expected.setDate(expected.getDate() - i)
-            const expectedStr = expected.toISOString().split('T')[0]
-            if (sorted[i] === expectedStr) {
-              streak++
-            } else {
-              break
-            }
+          let cursor = format(today, 'yyyy-MM-dd')
+          while (dateSet.has(cursor)) {
+            streak++
+            const prev = subDays(new Date(cursor + 'T00:00:00'), 1)
+            cursor = format(prev, 'yyyy-MM-dd')
           }
           return streak
         },
@@ -662,7 +657,7 @@ export const useAppStore = create<AppStore>()(
             const existing = state.revisionHistory.findIndex(r => r.topicId === topicId)
             const entry: RevisionEntry = {
               topicId,
-              lastRevised: new Date().toISOString().split('T')[0],
+              lastRevised: format(new Date(), 'yyyy-MM-dd'),
               confidence,
               revisionCount: existing >= 0 ? state.revisionHistory[existing].revisionCount + 1 : 1,
             }

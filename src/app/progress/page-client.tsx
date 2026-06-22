@@ -53,16 +53,8 @@ export default function ProgressPage() {
   const totalHours = useMemo(() => logs.reduce((s, l) => s + l.hours, 0), [logs])
 
   const streak = useMemo(() => {
-    const dateSet = new Set(logs.map((l) => l.date))
-    let streak = 0
-    const today = format(new Date(), 'yyyy-MM-dd')
-    let cursor = today
-    while (dateSet.has(cursor)) {
-      streak++
-      const d = subDays(new Date(cursor + 'T00:00:00'), 1)
-      cursor = format(d, 'yyyy-MM-dd')
-    }
-    return streak
+    const getStreak = useAppStore.getState().getStreak
+    return getStreak()
   }, [logs])
 
   const weeklyHours = useMemo(() => {

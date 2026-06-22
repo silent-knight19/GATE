@@ -114,7 +114,7 @@ export function StudyTimer() {
     const startTime = startTimeRef.current
     const accumulated = accumulatedRef.current
     const finalAccumulated = accumulated + (startTime !== null ? now - startTime : 0)
-    const hours = Math.round((finalAccumulated / 60000) * 10) / 10 / 60
+    const hours = Math.round((finalAccumulated / 3600000) * 100) / 100
     if (localTopicId && localSubjectId && finalAccumulated >= 60000) {
       addLogEntry({
         subjectId: localSubjectId,
@@ -126,7 +126,7 @@ export function StudyTimer() {
     }
     setElapsedMs(0)
     resetTimer()
-  }, [localTopicId, localSubjectId, addLogEntry, resetTimer])
+  }, [localTopicId, localSubjectId, addLogEntry, completeTaskOnTimer, resetTimer])
 
   const totalSeconds = Math.floor(elapsedMs / 1000)
   const displayHours = Math.floor(totalSeconds / 3600)

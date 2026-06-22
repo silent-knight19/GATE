@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useMemo, useState, Fragment } from "react"
 import { useAppStore } from "@/lib/store"
 import { MockTestLogger } from "@/components/mocks/mock-test-logger"
 import { ScoreTrendChart } from "@/components/mocks/score-trend-chart"
@@ -354,9 +354,8 @@ export default function MocksPage() {
                           )
                         : 0
                     return (
-                      <>
+                      <Fragment key={test.id}>
                         <tr
-                          key={test.id}
                           className="border-b border-border/40 transition-colors hover:bg-muted/40"
                         >
                           <td className="px-3 py-2 font-mono text-xs">
@@ -475,7 +474,7 @@ export default function MocksPage() {
                             </td>
                           </tr>
                         )}
-                      </>
+                      </Fragment>
                     )
                   })}
                 </tbody>

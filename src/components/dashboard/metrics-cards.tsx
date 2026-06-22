@@ -76,16 +76,10 @@ function MetricsCards() {
   const total = topicList.length
   const syllabusPct = total > 0 ? Math.round((completed / total) * 100) : 0
 
-  const dateSet = new Set(logs.map((l) => l.date))
-  let streak = 0
-  const today = new Date()
-  while (dateSet.has(today.toISOString().split("T")[0])) {
-    streak++
-    today.setDate(today.getDate() - 1)
-  }
+  const streak = useAppStore((s) => s.getStreak)()
 
   const totalHours = logs.reduce((sum, l) => sum + l.hours, 0)
-  const weeklyHours = totalHours > 0 ? Math.round(totalHours / Math.max(1, Math.floor((new Date().getTime() - new Date("2026-01-15").getTime()) / 86400000 / 7))) : 0
+  const weeklyHours = totalHours > 0 ? Math.round(totalHours / Math.max(1, Math.floor((Date.now() - new Date("2026-01-15").getTime()) / 86400000 / 7))) : 0
 
   const scores = tests.map((m) => m.marksObtained)
   const avgScore = scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0

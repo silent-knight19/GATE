@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useMemo } from "react"
+import { format } from "date-fns"
 import { syllabus } from "@/lib/data/syllabus"
 import type { Task } from "@/lib/store"
 import { Button } from "@/components/ui/button"
@@ -60,7 +61,7 @@ export function AddTaskModal({
   onDelete,
   defaultDate,
 }: AddTaskModalProps) {
-  const todayStr = useMemo(() => new Date().toISOString().split("T")[0], [])
+  const todayStr = format(new Date(), "yyyy-MM-dd")
 
   const [subjectId, setSubjectId] = useState("")
   const [topicId, setTopicId] = useState("")

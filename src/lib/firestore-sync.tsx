@@ -192,39 +192,29 @@ export function FirestoreSync() {
     }
   }, [user, doSave])
 
-  // On tab close, stash unsaved data to localStorage AND try sendBeacon to Firestore
+  // On tab close, stash unsaved data to localStorage for recovery on next load
   useEffect(() => {
-    function onBeforeUnload() {
+    function stashPending() {
       if (!pendingSaveRef.current) return
 
       const state = useAppStore.getState()
       const payload = buildPayload(state)
 
-      // Always stash to localStorage as a safety net
       try {
         localStorage.setItem(PENDING_KEY, JSON.stringify(payload))
       } catch {
         // localStorage is full or unavailable — nothing we can do
       }
-
-      // Also try to flush to Firestore via sendBeacon for immediate persistence
-      if (user && db) {
-        try {
-          const beaconPayload = JSON.stringify({
-            uid: user.uid,
-            data: payload,
-          })
-          navigator.sendBeacon('/api/sync-beacon', beaconPayload)
-        } catch {
-          // sendBeacon failed — localStorage backup is our fallback
-        }
-      }
     }
 
-    // Also flush on page visibility change (mobile browsers kill tabs without beforeunload)
+    function onBeforeUnload() {
+      stashPending()
+    }
+
+    // Mobile browsers kill tabs without beforeunload
     function onVisibilityChange() {
-      if (document.visibilityState === 'hidden' && pendingSaveRef.current) {
-        onBeforeUnload()
+      if (document.visibilityState === 'hidden') {
+        stashPending()
       }
     }
 
@@ -235,7 +225,7 @@ export function FirestoreSync() {
       window.removeEventListener('beforeunload', onBeforeUnload)
       document.removeEventListener('visibilitychange', onVisibilityChange)
     }
-  }, [user])
+  }, [])
 
   return null
 }

@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState, useCallback } from "react"
+import { useMemo, useState, useCallback, useEffect } from "react"
 import { useAppStore, type Task, type PlannerSettings } from "@/lib/store"
 import { syllabus } from "@/lib/data/syllabus"
 import { calculateVelocity } from "@/lib/calculators"
@@ -53,7 +53,17 @@ export default function PlannerPage() {
   const [showClearAllConfirm, setShowClearAllConfirm] = useState(false)
 
   const overall = useMemo(() => getOverallProgress(), [topicsProgress, getOverallProgress])
-  const todayStr = useMemo(() => format(new Date(), "yyyy-MM-dd"), [])
+  const [todayStr, setTodayStr] = useState(() => format(new Date(), "yyyy-MM-dd"))
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTodayStr((prev) => {
+        const now = format(new Date(), "yyyy-MM-dd")
+        return now !== prev ? now : prev
+      })
+    }, 60000)
+    return () => clearInterval(interval)
+  }, [])
 
   const todayGroup = useMemo(
     () => dailyTasks.find((g) => g.date === todayStr),

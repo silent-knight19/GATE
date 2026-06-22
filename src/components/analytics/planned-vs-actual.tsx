@@ -28,43 +28,43 @@ function PlannedVsActual() {
   const logs = useAppStore((s) => s.logs)
 
   const data = useMemo(() => {
-    const weekPlanned: Record<string, number> = {}
+    const weekData: Record<string, { planned: number; studied: number; date: Date }> = {}
+
+    function getWeekKey(d: Date): string {
+      return format(d, "yyyy-MM-dd")
+    }
+
     for (const g of dailyTasks) {
       const d = new Date(g.date + "T00:00:00")
       const ws = startOfWeek(d, { weekStartsOn: 1 })
-      const key = format(ws, "MMM d")
-      weekPlanned[key] = (weekPlanned[key] || 0) + g.totalHours
+      const key = getWeekKey(ws)
+      if (!weekData[key]) weekData[key] = { planned: 0, studied: 0, date: ws }
+      weekData[key].planned += g.totalHours
     }
 
-    const weekStudied: Record<string, number> = {}
     for (const log of logs) {
       const d = new Date(log.date + "T00:00:00")
       const ws = startOfWeek(d, { weekStartsOn: 1 })
-      const key = format(ws, "MMM d")
-      weekStudied[key] = (weekStudied[key] || 0) + log.hours
+      const key = getWeekKey(ws)
+      if (!weekData[key]) weekData[key] = { planned: 0, studied: 0, date: ws }
+      weekData[key].studied += log.hours
     }
 
     const today = new Date()
-    const allKeys = new Set([...Object.keys(weekPlanned), ...Object.keys(weekStudied)])
     for (let i = 3; i >= 0; i--) {
       const ws = startOfWeek(subWeeks(today, i), { weekStartsOn: 1 })
-      allKeys.add(format(ws, "MMM d"))
+      const key = getWeekKey(ws)
+      if (!weekData[key]) weekData[key] = { planned: 0, studied: 0, date: ws }
     }
 
-    return Array.from(allKeys).sort((a, b) => {
-      const pa = new Date(a + " 2026")
-      const pb = new Date(b + " 2026")
-      return pa.getTime() - pb.getTime()
-    }).map((week) => {
-      const planned = weekPlanned[week] || 0
-      const studied = weekStudied[week] || 0
-      return {
-        week,
+    return Object.values(weekData)
+      .sort((a, b) => a.date.getTime() - b.date.getTime())
+      .map(({ date, planned, studied }) => ({
+        week: format(date, "MMM d"),
         planned: Math.round(planned * 10) / 10,
         studied: Math.round(studied * 10) / 10,
         pct: planned > 0 ? Math.round((studied / planned) * 100) : 0,
-      }
-    })
+      }))
   }, [dailyTasks, logs])
 
   const hasData = data.some((d) => d.planned > 0 || d.studied > 0)

@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState } from "react"
+import { format } from "date-fns"
 import {
   Dialog,
   DialogTrigger,
@@ -55,7 +56,7 @@ export const MockTestLogger = React.memo(function MockTestLogger() {
 
   const [open, setOpen] = useState(false)
   const [source, setSource] = useState("")
-  const [date, setDate] = useState(new Date().toISOString().split("T")[0])
+  const [date, setDate] = useState(format(new Date(), "yyyy-MM-dd"))
   const [totalMarks, setTotalMarks] = useState(100)
   const [marksObtained, setMarksObtained] = useState(0)
   const [subjectBreakdown, setSubjectBreakdown] = useState<SubjectEntry[]>([])
@@ -129,7 +130,7 @@ export const MockTestLogger = React.memo(function MockTestLogger() {
     })
 
     setSource("")
-    setDate(new Date().toISOString().split("T")[0])
+    setDate(format(new Date(), "yyyy-MM-dd"))
     setMarksObtained(0)
     setSubjectBreakdown([])
     setErrors([])

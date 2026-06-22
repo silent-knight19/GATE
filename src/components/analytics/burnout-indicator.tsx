@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useMemo } from "react"
+import { format } from "date-fns"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useAppStore } from "@/lib/store"
 import { calculateBurnoutRisk } from "@/lib/calculators"
@@ -21,7 +22,7 @@ function BurnoutIndicator() {
     for (let i = 0; i < sortedDates.length; i++) {
       const expected = new Date(today)
       expected.setDate(expected.getDate() - i)
-      const expectedStr = expected.toISOString().split("T")[0]
+      const expectedStr = format(expected, "yyyy-MM-dd")
       if (sortedDates[i] !== expectedStr) break
       const hours = dailyHours[sortedDates[i]]
       if (hours >= 8) {
@@ -32,8 +33,9 @@ function BurnoutIndicator() {
     }
 
     const mockTrend = [...tests].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()).map((t) => t.marksObtained)
-    const avgHours = logs.length > 0
-      ? Math.round((logs.reduce((s, l) => s + l.hours, 0) / logs.length) * 10) / 10
+    const uniqueDays = new Set(logs.map((l) => l.date)).size
+    const avgHours = uniqueDays > 0
+      ? Math.round((logs.reduce((s, l) => s + l.hours, 0) / uniqueDays) * 10) / 10
       : 0
 
     return calculateBurnoutRisk(highIntensityStreak, mockTrend, avgHours)
