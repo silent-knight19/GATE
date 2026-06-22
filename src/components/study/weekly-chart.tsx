@@ -18,23 +18,14 @@ import {
 import { useAppStore } from "@/lib/store"
 import { syllabus } from "@/lib/data/syllabus"
 
-const SUBJECT_COLORS: Record<string, string> = {
-  "General Aptitude": "#6366f1",
-  "Engineering Mathematics": "#8b5cf6",
-  "Digital Logic": "#ec4899",
-  "Computer Organization & Architecture": "#f97316",
-  "Programming & Data Structures": "#22c55e",
-  Algorithms: "#14b8a6",
-  "Theory of Computation": "#e11d48",
-  "Compiler Design": "#d946ef",
-  "Operating Systems": "#06b6d4",
-  Databases: "#84cc16",
-  "Computer Networks": "#f43f5e",
-}
-
 function getSubjectNameForLog(subjectId: string): string | null {
   const sub = syllabus.find((s) => s.id === subjectId)
   return sub?.shortName || null
+}
+
+function getSubjectColor(subjectShortName: string): string {
+  const sub = syllabus.find((s) => s.shortName === subjectShortName)
+  return sub?.color || "#6b7280"
 }
 
 export const WeeklyChart = React.memo(function WeeklyChart() {
@@ -120,13 +111,14 @@ export const WeeklyChart = React.memo(function WeeklyChart() {
                   borderRadius: "8px",
                   fontSize: "13px",
                 }}
+                formatter={(value) => `${Number(value).toFixed(2)}h`}
               />
               {allSubjectsInStack.map((subject) => (
                 <Bar
                   key={subject}
                   dataKey={subject}
                   stackId="a"
-                  fill={SUBJECT_COLORS[subject] || "#6b7280"}
+                  fill={getSubjectColor(subject)}
                   radius={[2, 2, 0, 0]}
                 />
               ))}
@@ -155,7 +147,7 @@ export const WeeklyChart = React.memo(function WeeklyChart() {
                 {subjectTotals.map((entry) => (
                   <Cell
                     key={entry.name}
-                    fill={SUBJECT_COLORS[entry.name] || "#6b7280"}
+                    fill={getSubjectColor(entry.name)}
                   />
                 ))}
               </Pie>
@@ -166,6 +158,7 @@ export const WeeklyChart = React.memo(function WeeklyChart() {
                   borderRadius: "8px",
                   fontSize: "13px",
                 }}
+                formatter={(value) => `${Number(value).toFixed(2)}h`}
               />
               <Legend
                 formatter={(value: string) => (

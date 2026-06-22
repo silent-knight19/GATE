@@ -16,7 +16,7 @@ function CustomTooltip({ active, payload }: { active?: boolean; payload?: Toolti
   return (
     <div className="rounded-lg border bg-card p-3 text-xs shadow-lg space-y-1">
       <p className="font-medium text-sm">Week of {d.week}</p>
-      <p>{d.hours.toFixed(1)} hours</p>
+      <p>{d.hours.toFixed(2)} hours</p>
       {d.sessions > 0 && <p className="text-muted-foreground">{d.sessions} sessions</p>}
     </div>
   )

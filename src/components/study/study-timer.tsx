@@ -90,12 +90,12 @@ export function StudyTimer() {
     setTimerState({
       isRunning: true,
       startTime: now,
-      accumulated: 0,
+      accumulated: timerState.accumulated,
       selectedSubjectId: localSubjectId,
       selectedTopicId: localTopicId,
     })
-    setElapsedMs(0)
-  }, [localTopicId, localSubjectId, setTimerState])
+    setElapsedMs(timerState.accumulated)
+  }, [localTopicId, localSubjectId, setTimerState, timerState.accumulated])
 
   const handlePause = useCallback(() => {
     if (timerState.startTime === null) return
