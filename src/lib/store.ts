@@ -743,7 +743,7 @@ export const useAppStore = create<AppStore>()(
     {
       name: 'gateee-store',
       partialize: (state) => {
-        const { timerState: _timer, ...rest } = state
+        const { timerState: _timer, syncStatus: _sync, ...rest } = state
         return rest
       },
       merge: (persisted, current) => {

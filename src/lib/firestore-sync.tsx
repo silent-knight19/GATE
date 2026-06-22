@@ -5,7 +5,6 @@ import { doc, getDoc, setDoc } from 'firebase/firestore'
 import { db, isConfigured } from '@/lib/firebase'
 import { useAuth } from '@/lib/auth-context'
 import { useAppStore, stripFunctions } from '@/lib/store'
-import type { TopicStatus } from '@/lib/data/syllabus'
 
 const SAVE_DEBOUNCE_MS = 3000
 const STORE_FIELD = 'store'
@@ -32,6 +31,7 @@ export function FirestoreSync() {
   const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const pendingSaveRef = useRef(false)
   const retryCountRef = useRef(0)
+  const skipNextSaveRef = useRef(false)
   const setSyncStatus = useAppStore((s) => s.setSyncStatus)
 
   /**
@@ -87,69 +87,72 @@ export function FirestoreSync() {
       localStorage.removeItem(PENDING_KEY)
     } catch {
       // If flushing the stashed data fails, leave it for next attempt.
-      // It will be overwritten once a normal save succeeds.
     }
   }, [user])
+
+  /**
+   * Loads user data from Firestore and replaces the local Zustand state.
+   * Firestore is the single source of truth — local state is fully
+   * overwritten (not merged) to prevent cross-device divergence.
+   */
+  const loadFromFirestore = useCallback(async () => {
+    if (!db || !user) return
+
+    try {
+      // First, flush any pending save from a previous session
+      await flushPendingSave()
+
+      const ref = doc(db, 'users', user.uid)
+      const snap = await getDoc(ref)
+      const current = useAppStore.getState()
+
+      if (snap.exists() && snap.data()[STORE_FIELD]) {
+        const remote = snap.data()[STORE_FIELD] as Record<string, unknown>
+
+        // Firestore is the single source of truth.
+        // Remote data fully replaces local state.
+        // Only topicsProgress keeps local defaults for newly added topics
+        // (so new syllabus entries aren't lost if they don't exist remotely yet).
+        const remoteTopics = (remote.topicsProgress || {}) as Record<string, string>
+        const mergedTopics = {
+          ...current.topicsProgress,  // defaults for any new topics
+          ...remoteTopics,            // remote always wins
+        }
+
+        // Set the guard BEFORE setState to prevent the subscribe handler
+        // from immediately saving back what we just loaded
+        skipNextSaveRef.current = true
+
+        useAppStore.setState({
+          user: (remote.user as typeof current.user) || current.user,
+          topicsProgress: mergedTopics,
+          logs: (remote.logs as typeof current.logs) || [],
+          tests: (remote.tests as typeof current.tests) || [],
+          revisionHistory: (remote.revisionHistory as typeof current.revisionHistory) || [],
+          dailyTasks: (remote.dailyTasks as typeof current.dailyTasks) || [],
+          weeklyTargets: (remote.weeklyTargets as typeof current.weeklyTargets) || [],
+          plannerSettings: (remote.plannerSettings as typeof current.plannerSettings) || current.plannerSettings,
+          appState: (remote.appState as typeof current.appState) || current.appState,
+        } as Partial<typeof current>)
+
+        setSyncStatus({ state: 'saved' })
+      } else {
+        // First-time user: push local state up to Firestore
+        const payload = buildPayload(current)
+        await setDoc(ref, { [STORE_FIELD]: payload }, { merge: true })
+        setSyncStatus({ state: 'saved' })
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Unknown load error'
+      setSyncStatus({ state: 'error', lastError: msg })
+    }
+  }, [user, setSyncStatus, flushPendingSave])
 
   // Load data from Firestore when user signs in
   useEffect(() => {
     if (!isConfigured || !db || !user) {
       initialized.current = false
       return
-    }
-
-    async function loadFromFirestore() {
-      try {
-        if (!db || !user) return
-
-        // First, flush any pending save from a previous session
-        await flushPendingSave()
-
-        const ref = doc(db, 'users', user.uid)
-        const snap = await getDoc(ref)
-        const current = useAppStore.getState()
-
-        if (snap.exists() && snap.data()[STORE_FIELD]) {
-          const remote = snap.data()[STORE_FIELD] as Record<string, unknown>
-
-          const mergedTopics: Record<string, TopicStatus> = {
-            ...current.topicsProgress,
-            ...(remote.topicsProgress as Record<string, TopicStatus> || {}),
-          }
-
-          const mergeArray = <T,>(
-            remoteArr: T[],
-            localArr: T[],
-            key: (item: T) => string,
-          ): T[] => {
-            const remoteKeys = new Set(remoteArr.map(key))
-            const localUnique = localArr.filter(i => !remoteKeys.has(key(i)))
-            return [...remoteArr, ...localUnique]
-          }
-
-          useAppStore.setState({
-            user: { ...current.user, ...(remote.user as typeof current.user || {}) },
-            plannerSettings: { ...current.plannerSettings, ...(remote.plannerSettings as typeof current.plannerSettings || {}) },
-            appState: { ...current.appState, ...(remote.appState as typeof current.appState || {}) },
-            topicsProgress: mergedTopics,
-            logs: mergeArray(remote.logs as typeof current.logs || [], current.logs, l => `${l.date}-${l.topicId}-${l.activityType}`),
-            tests: mergeArray(remote.tests as typeof current.tests || [], current.tests, t => t.id),
-            revisionHistory: mergeArray(remote.revisionHistory as typeof current.revisionHistory || [], current.revisionHistory, r => r.topicId),
-            dailyTasks: mergeArray(remote.dailyTasks as typeof current.dailyTasks || [], current.dailyTasks, g => g.date),
-            weeklyTargets: mergeArray(remote.weeklyTargets as typeof current.weeklyTargets || [], current.weeklyTargets, w => w.weekStart),
-          } as Partial<typeof current>)
-
-          setSyncStatus({ state: 'saved' })
-        } else {
-          // First-time user: push local state up to Firestore
-          const payload = buildPayload(current)
-          await setDoc(ref, { [STORE_FIELD]: payload }, { merge: true })
-          setSyncStatus({ state: 'saved' })
-        }
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : 'Unknown load error'
-        setSyncStatus({ state: 'error', lastError: msg })
-      }
     }
 
     if (!initialized.current) {
@@ -163,13 +166,19 @@ export function FirestoreSync() {
         return () => { unsub() }
       }
     }
-  }, [user, setSyncStatus, flushPendingSave])
+  }, [user, loadFromFirestore])
 
   // Subscribe to store changes and debounce saves
   useEffect(() => {
     if (!isConfigured || !db || !user) return
 
     const unsub = useAppStore.subscribe((state) => {
+      // Skip the save that fires right after loading from Firestore
+      if (skipNextSaveRef.current) {
+        skipNextSaveRef.current = false
+        return
+      }
+
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
       pendingSaveRef.current = true
       retryCountRef.current = 0
