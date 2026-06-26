@@ -12,10 +12,6 @@ const PENDING_KEY = 'gateee-sync-pending'
 const MAX_RETRIES = 3
 const RETRY_DELAY_MS = 5000
 
-/**
- * Builds the Firestore-safe payload from current store state.
- * Strips functions, syncStatus, and timerState.
- */
 function buildPayload(state: ReturnType<typeof useAppStore.getState>): Record<string, unknown> {
   const payload = stripFunctions(state)
   delete payload.syncStatus
@@ -24,20 +20,27 @@ function buildPayload(state: ReturnType<typeof useAppStore.getState>): Record<st
   return payload
 }
 
+/**
+ * Exposed for the manual refresh button in the navbar.
+ * Returns a promise that resolves when the load completes (or fails).
+ */
+let _manualRefresh: (() => Promise<void>) | null = null
+
+export function triggerFirestoreRefresh(): Promise<void> {
+  return _manualRefresh?.() ?? Promise.resolve()
+}
+
 export function FirestoreSync() {
   const { user } = useAuth()
-  const initialized = useRef(false)
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const pendingSaveRef = useRef(false)
   const retryCountRef = useRef(0)
   const skipNextSaveRef = useRef(false)
+  const loadInProgressRef = useRef(false)
+  const lastLoadTimeRef = useRef(0)
   const setSyncStatus = useAppStore((s) => s.setSyncStatus)
 
-  /**
-   * Saves the current store state to Firestore.
-   * On failure, automatically retries up to MAX_RETRIES times.
-   */
   const doSaveRef = useRef<((state: ReturnType<typeof useAppStore.getState>) => Promise<void>) | null>(null)
 
   const doSave = useCallback(async (state: ReturnType<typeof useAppStore.getState>) => {
@@ -49,6 +52,7 @@ export function FirestoreSync() {
       const ref = doc(db, 'users', user.uid)
       await setDoc(ref, { [STORE_FIELD]: payload }, { merge: true })
       retryCountRef.current = 0
+      localStorage.removeItem(PENDING_KEY)
       setSyncStatus({ state: 'saved' })
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Unknown save error'
@@ -72,72 +76,43 @@ export function FirestoreSync() {
     doSaveRef.current = doSave
   }, [doSave])
 
-  /**
-   * Flushes any pending save from localStorage that was stashed
-   * during a beforeunload event in a previous session.
-   */
-  const flushPendingSave = useCallback(async () => {
-    if (!db || !user) return
-    try {
-      const raw = localStorage.getItem(PENDING_KEY)
-      if (!raw) return
-      const payload = JSON.parse(raw)
-      const ref = doc(db, 'users', user.uid)
-      await setDoc(ref, { [STORE_FIELD]: payload }, { merge: true })
-      localStorage.removeItem(PENDING_KEY)
-    } catch {
-      // If flushing the stashed data fails, leave it for next attempt.
-    }
-  }, [user])
-
-  /**
-   * Loads user data from Firestore and replaces the local Zustand state.
-   * Firestore is the single source of truth — local state is fully
-   * overwritten (not merged) to prevent cross-device divergence.
-   */
   const loadFromFirestore = useCallback(async () => {
     if (!db || !user) return
+    if (loadInProgressRef.current) return
+
+    loadInProgressRef.current = true
+    setSyncStatus({ state: 'saving', lastError: null })
 
     try {
-      // First, flush any pending save from a previous session
-      await flushPendingSave()
-
+      const current = useAppStore.getState()
       const ref = doc(db, 'users', user.uid)
       const snap = await getDoc(ref)
-      const current = useAppStore.getState()
 
       if (snap.exists() && snap.data()[STORE_FIELD]) {
         const remote = snap.data()[STORE_FIELD] as Record<string, unknown>
 
-        // Firestore is the single source of truth.
-        // Remote data fully replaces local state.
-        // Only topicsProgress keeps local defaults for newly added topics
-        // (so new syllabus entries aren't lost if they don't exist remotely yet).
         const remoteTopics = (remote.topicsProgress || {}) as Record<string, string>
         const mergedTopics = {
-          ...current.topicsProgress,  // defaults for any new topics
-          ...remoteTopics,            // remote always wins
+          ...current.topicsProgress,
+          ...remoteTopics,
         }
 
-        // Set the guard BEFORE setState to prevent the subscribe handler
-        // from immediately saving back what we just loaded
         skipNextSaveRef.current = true
 
         useAppStore.setState({
           user: (remote.user as typeof current.user) || current.user,
           topicsProgress: mergedTopics,
-          logs: (remote.logs as typeof current.logs) || [],
-          tests: (remote.tests as typeof current.tests) || [],
-          revisionHistory: (remote.revisionHistory as typeof current.revisionHistory) || [],
-          dailyTasks: (remote.dailyTasks as typeof current.dailyTasks) || [],
-          weeklyTargets: (remote.weeklyTargets as typeof current.weeklyTargets) || [],
+          logs: (remote.logs as typeof current.logs) || current.logs,
+          tests: (remote.tests as typeof current.tests) || current.tests,
+          revisionHistory: (remote.revisionHistory as typeof current.revisionHistory) || current.revisionHistory,
+          dailyTasks: (remote.dailyTasks as typeof current.dailyTasks) || current.dailyTasks,
+          weeklyTargets: (remote.weeklyTargets as typeof current.weeklyTargets) || current.weeklyTargets,
           plannerSettings: (remote.plannerSettings as typeof current.plannerSettings) || current.plannerSettings,
           appState: (remote.appState as typeof current.appState) || current.appState,
         } as Partial<typeof current>)
 
         setSyncStatus({ state: 'saved' })
-      } else {
-        // First-time user: push local state up to Firestore
+      } else if (snap.exists()) {
         const payload = buildPayload(current)
         await setDoc(ref, { [STORE_FIELD]: payload }, { merge: true })
         setSyncStatus({ state: 'saved' })
@@ -145,26 +120,29 @@ export function FirestoreSync() {
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Unknown load error'
       setSyncStatus({ state: 'error', lastError: msg })
+    } finally {
+      loadInProgressRef.current = false
+      lastLoadTimeRef.current = Date.now()
     }
-  }, [user, setSyncStatus, flushPendingSave])
+  }, [user, setSyncStatus])
 
-  // Load data from Firestore when user signs in
   useEffect(() => {
-    if (!isConfigured || !db || !user) {
-      initialized.current = false
-      return
-    }
+    _manualRefresh = loadFromFirestore
+    return () => { _manualRefresh = null }
+  }, [loadFromFirestore])
 
-    if (!initialized.current) {
-      initialized.current = true
-      if (useAppStore.persist.hasHydrated()) {
+  // Load data from Firestore when user signs in or changes.
+  // Re-runs on every mount of this component (layout mount = page navigation).
+  useEffect(() => {
+    if (!isConfigured || !db || !user) return
+
+    if (useAppStore.persist.hasHydrated()) {
+      loadFromFirestore()
+    } else {
+      const unsub = useAppStore.persist.onFinishHydration(() => {
         loadFromFirestore()
-      } else {
-        const unsub = useAppStore.persist.onFinishHydration(() => {
-          loadFromFirestore()
-        })
-        return () => { unsub() }
-      }
+      })
+      return () => { unsub() }
     }
   }, [user, loadFromFirestore])
 
@@ -173,7 +151,6 @@ export function FirestoreSync() {
     if (!isConfigured || !db || !user) return
 
     const unsub = useAppStore.subscribe((state) => {
-      // Skip the save that fires right after loading from Firestore
       if (skipNextSaveRef.current) {
         skipNextSaveRef.current = false
         return
@@ -192,7 +169,6 @@ export function FirestoreSync() {
     }
   }, [user, doSave])
 
-  // On tab close, stash unsaved data to localStorage for recovery on next load
   useEffect(() => {
     function stashPending() {
       if (!pendingSaveRef.current) return
@@ -203,7 +179,6 @@ export function FirestoreSync() {
       try {
         localStorage.setItem(PENDING_KEY, JSON.stringify(payload))
       } catch {
-        // localStorage is full or unavailable — nothing we can do
       }
     }
 
@@ -211,7 +186,6 @@ export function FirestoreSync() {
       stashPending()
     }
 
-    // Mobile browsers kill tabs without beforeunload
     function onVisibilityChange() {
       if (document.visibilityState === 'hidden') {
         stashPending()

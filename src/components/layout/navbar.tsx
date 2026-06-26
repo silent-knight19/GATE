@@ -1,12 +1,13 @@
 "use client"
 
 import { usePathname } from "next/navigation"
-import { Menu, Sun, Moon, LogIn, LogOut, Cloud, CloudOff, Loader2, AlertTriangle, X } from "lucide-react"
+import { Menu, Sun, Moon, LogIn, LogOut, Cloud, Loader2, AlertTriangle, X, RefreshCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { useTheme } from "@/components/theme-provider"
 import { useAuth } from "@/lib/auth-context"
 import { useAppStore } from "@/lib/store"
+import { triggerFirestoreRefresh } from "@/lib/firestore-sync"
 
 const TITLES: Record<string, string> = {
   "/dashboard": "Dashboard",
@@ -65,19 +66,23 @@ export function Navbar({ onMenuClick }: { onMenuClick: () => void }) {
 
       <div className="ml-auto flex items-center gap-2 sm:gap-3">
         {user && (
-          <div className="hidden sm:flex items-center justify-center rounded-full bg-secondary/50 p-1.5 backdrop-blur-sm mr-2 transition-all" title={
-            syncStatus.state === 'saving' ? 'Saving...' :
-            syncStatus.state === 'error' ? `Sync error: ${syncStatus.lastError || 'Unknown'}` :
-            'All changes saved'
-          }>
+          <button
+            onClick={() => triggerFirestoreRefresh()}
+            className="hidden sm:flex items-center justify-center rounded-full bg-secondary/50 p-1.5 backdrop-blur-sm mr-2 transition-all hover:bg-secondary/80 active:scale-95"
+            title={
+              syncStatus.state === 'saving' ? 'Saving...' :
+              syncStatus.state === 'error' ? `Sync error: ${syncStatus.lastError || 'Unknown'} — Click to retry` :
+              'All changes saved — Click to refresh from cloud'
+            }
+          >
             {syncStatus.state === 'saving' ? (
               <Loader2 className="size-3.5 text-muted-foreground animate-spin" />
             ) : syncStatus.state === 'error' ? (
-              <CloudOff className="size-3.5 text-destructive" />
+              <RefreshCw className="size-3.5 text-destructive" />
             ) : (
               <Cloud className="size-3.5 text-emerald-500" />
             )}
-          </div>
+          </button>
         )}
 
         {authError && (
