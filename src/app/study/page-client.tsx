@@ -18,9 +18,11 @@ export default function StudyPage() {
   const logs = useAppStore((s) => s.logs)
   const getStreak = useAppStore((s) => s.getStreak)
 
+  const [mounted, setMounted] = useState(false)
   const [todayDate, setTodayDate] = useState(() => format(new Date(), "yyyy-MM-dd"))
 
   useEffect(() => {
+    setMounted(true)
     const interval = setInterval(() => {
       setTodayDate((prev) => {
         const now = format(new Date(), "yyyy-MM-dd")
@@ -31,11 +33,12 @@ export default function StudyPage() {
   }, [])
 
   const totalHours = useMemo(
-    () => logs.reduce((sum, l) => sum + l.hours, 0),
-    [logs]
+    () => mounted ? logs.reduce((sum, l) => sum + l.hours, 0) : 0,
+    [logs, mounted]
   )
 
   const hoursBySubject = useMemo(() => {
+    if (!mounted) return {}
     const hours: Record<string, number> = {}
     for (const log of logs) {
       const sub = syllabus.find((s) => s.id === log.subjectId)
@@ -44,27 +47,32 @@ export default function StudyPage() {
       }
     }
     return hours
-  }, [logs])
+  }, [logs, mounted])
 
-  const streak = useMemo(() => getStreak(), [getStreak, logs])
+  const streak = useMemo(() => mounted ? getStreak() : 0, [getStreak, logs, mounted])
 
   const todayLogs = useMemo(
     () =>
-      logs
-        .filter((l) => l.date === todayDate)
-        .sort((a, b) => b.hours - a.hours),
-    [logs, todayDate]
+      mounted
+        ? logs
+            .filter((l) => l.date === todayDate)
+            .sort((a, b) => b.hours - a.hours)
+        : [],
+    [logs, todayDate, mounted]
   )
 
   const recentLogs = useMemo(
     () =>
-      [...logs]
-        .sort((a, b) => b.date.localeCompare(a.date) || b.hours - a.hours)
-        .slice(0, 20),
-    [logs]
+      mounted
+        ? [...logs]
+            .sort((a, b) => b.date.localeCompare(a.date) || b.hours - a.hours)
+            .slice(0, 20)
+        : [],
+    [logs, mounted]
   )
 
   const weeklyStats = useMemo(() => {
+    if (!mounted) return { weekHours: 0, daysStudied: 0 }
     const weekAgo = subDays(new Date(), 7)
     const weekLogs = logs.filter(
       (l) => new Date(l.date + "T00:00:00") >= weekAgo
@@ -72,7 +80,7 @@ export default function StudyPage() {
     const weekHours = weekLogs.reduce((s, l) => s + l.hours, 0)
     const daysStudied = new Set(weekLogs.map((l) => l.date)).size
     return { weekHours, daysStudied }
-  }, [logs])
+  }, [logs, mounted])
 
   return (
     <div className="mx-auto max-w-6xl space-y-5 p-4 md:p-6">
