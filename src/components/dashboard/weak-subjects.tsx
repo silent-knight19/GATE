@@ -92,8 +92,7 @@ function WeakSubjects() {
             </div>
           </div>
         ) : (
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height={256}>
               <BarChart
                 data={subjects}
                 layout="vertical"
@@ -115,7 +114,6 @@ function WeakSubjects() {
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
-          </div>
         )}
       </CardContent>
     </Card>

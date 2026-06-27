@@ -29,8 +29,7 @@ export const SubjectRadar = React.memo(function SubjectRadar({ subjectScores }: 
   }
 
   return (
-    <div className="h-64">
-      <ResponsiveContainer width="100%" height="100%">
+    <ResponsiveContainer width="100%" height={256}>
         <RadarChart data={data} cx="50%" cy="50%" outerRadius="70%">
           <PolarGrid stroke="hsl(var(--border))" />
           <PolarAngleAxis
@@ -55,6 +54,5 @@ export const SubjectRadar = React.memo(function SubjectRadar({ subjectScores }: 
           />
         </RadarChart>
       </ResponsiveContainer>
-    </div>
   )
 })

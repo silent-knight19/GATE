@@ -72,8 +72,7 @@ function RevisionCoverage() {
             <p className="text-sm text-muted-foreground">Start revising topics to see coverage</p>
           </div>
         ) : (
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height={256}>
               <BarChart data={data} layout="vertical" margin={{ top: 0, right: 10, left: 10, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
                 <XAxis type="number" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
@@ -83,7 +82,6 @@ function RevisionCoverage() {
                 <Bar dataKey="needsRevision" stackId="a" fill="#eab308" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
-          </div>
         )}
         <div className="mt-3 flex items-center justify-center gap-4 text-xs text-muted-foreground">
           <span className="flex items-center gap-1"><span className="size-2.5 rounded bg-green-500" /> Up to date</span>

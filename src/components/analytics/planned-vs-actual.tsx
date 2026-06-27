@@ -80,8 +80,7 @@ function PlannedVsActual() {
             <p className="text-sm text-muted-foreground">Generate plans and log study time to see comparison</p>
           </div>
         ) : (
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height={256}>
               <BarChart data={data} margin={{ top: 0, right: 10, left: -10, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
                 <XAxis dataKey="week" tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
@@ -91,7 +90,6 @@ function PlannedVsActual() {
                 <Bar dataKey="studied" fill="hsl(var(--primary))" barSize={20} radius={[3, 3, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
-          </div>
         )}
         <div className="mt-3 flex items-center justify-center gap-4 text-xs text-muted-foreground">
           <span className="flex items-center gap-1"><span className="size-2.5 rounded bg-muted" /> Planned hours</span>

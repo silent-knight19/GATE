@@ -265,8 +265,7 @@ export default function ProgressPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="h-40">
-                <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height={160}>
                   <BarChart data={weeklyHours} margin={{ top: 0, right: 0, bottom: 0, left: -10 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
                     <XAxis dataKey="day" tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" tickLine={false} />
@@ -275,7 +274,6 @@ export default function ProgressPage() {
                     <Bar dataKey="hours" fill="hsl(var(--primary))" radius={[3, 3, 0, 0]} barSize={20} />
                   </BarChart>
                 </ResponsiveContainer>
-              </div>
             </CardContent>
           </Card>
 

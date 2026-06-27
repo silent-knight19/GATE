@@ -172,8 +172,7 @@ export function SubjectDetail({ subject }: { subject: Subject }) {
           <BarChart3 className="size-4 text-muted-foreground" />
           <span className="text-sm font-medium">Year-wise Marks Distribution (2021-2025)</span>
         </div>
-        <div className="h-48">
-          <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height={192}>
             <BarChart data={yearChartData} margin={{ top: 0, right: 10, left: -10, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
               <XAxis dataKey="year" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
@@ -185,7 +184,6 @@ export function SubjectDetail({ subject }: { subject: Subject }) {
               <Bar dataKey="marks" fill={subject.color} radius={[4, 4, 0, 0]} barSize={36} />
             </BarChart>
           </ResponsiveContainer>
-        </div>
         <div className="mt-2 text-xs text-muted-foreground">
           Average: {subject.avgMarks} marks | Highest: {Math.max(...subject.yearMarks.map((y) => y.marks))} marks
         </div>
@@ -229,8 +227,7 @@ export function SubjectDetail({ subject }: { subject: Subject }) {
             <TrendingUp className="size-4 text-muted-foreground" />
             <span className="text-sm font-medium">Mock Test Performance ({subject.name})</span>
           </div>
-          <div className="h-40">
-            <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height={160}>
               <LineChart data={testScores} margin={{ top: 0, right: 10, left: -10, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                 <XAxis dataKey="date" tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
@@ -241,7 +238,6 @@ export function SubjectDetail({ subject }: { subject: Subject }) {
                 <Line type="monotone" dataKey="score" stroke={subject.color} strokeWidth={2} dot={{ r: 3 }} />
               </LineChart>
             </ResponsiveContainer>
-          </div>
         </div>
       )}
 

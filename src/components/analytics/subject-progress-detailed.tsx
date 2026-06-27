@@ -61,8 +61,7 @@ function SubjectProgressDetailed() {
             <p className="text-sm text-muted-foreground">No syllabus data</p>
           </div>
         ) : (
-          <div className="h-[500px]">
-            <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height={500}>
               <BarChart data={data} layout="vertical" margin={{ top: 0, right: 10, left: 10, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
                 <XAxis type="number" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" domain={[0, 'dataMax']} />
@@ -74,7 +73,6 @@ function SubjectProgressDetailed() {
                 <Bar dataKey="mastered" stackId="a" fill="#3b82f6" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
-          </div>
         )}
         <div className="mt-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
           <span className="flex items-center gap-1"><span className="size-2.5 rounded bg-muted" /> Not started</span>

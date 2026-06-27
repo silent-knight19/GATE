@@ -67,8 +67,7 @@ function SubjectErrorBreakdown() {
             <p className="text-sm text-muted-foreground">Take mock tests with subject breakdown to see errors by subject</p>
           </div>
         ) : (
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height={256}>
               <BarChart data={data} layout="vertical" margin={{ top: 0, right: 10, left: 10, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
                 <XAxis type="number" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
@@ -81,7 +80,6 @@ function SubjectErrorBreakdown() {
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
-          </div>
         )}
       </CardContent>
     </Card>

@@ -66,8 +66,7 @@ function WeeklyStudyHours() {
             <p className="text-sm text-muted-foreground">Log study sessions to see weekly trends</p>
           </div>
         ) : (
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height={256}>
               <BarChart data={data} margin={{ top: 0, right: 10, left: -10, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
                 <XAxis dataKey="week" tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" interval={0} angle={-20} textAnchor="end" height={40} />
@@ -79,7 +78,6 @@ function WeeklyStudyHours() {
                 <Bar dataKey="hours" fill="hsl(var(--primary))" radius={[3, 3, 0, 0]} barSize={24} />
               </BarChart>
             </ResponsiveContainer>
-          </div>
         )}
       </CardContent>
     </Card>

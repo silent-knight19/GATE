@@ -50,8 +50,8 @@ function ErrorAnalysis() {
           </div>
         ) : (
           <div className="flex h-64 items-center gap-4">
-            <div className="h-full flex-1">
-              <ResponsiveContainer width="100%" height="100%">
+            <div className="flex-1">
+              <ResponsiveContainer width="100%" height={256}>
                 <PieChart>
                   <Pie data={data} cx="50%" cy="50%" innerRadius={50} outerRadius={90} dataKey="value" paddingAngle={2}>
                     {data.map((_, index) => (

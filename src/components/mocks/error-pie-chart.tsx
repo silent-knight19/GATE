@@ -42,8 +42,7 @@ export const ErrorPieChart = React.memo(function ErrorPieChart({ errors }: Error
   const total = errors.reduce((s, e) => s + e.count, 0)
 
   return (
-    <div className="h-64">
-      <ResponsiveContainer width="100%" height="100%">
+    <ResponsiveContainer width="100%" height={256}>
         <PieChart>
           <Pie
             data={errors}
@@ -86,6 +85,5 @@ export const ErrorPieChart = React.memo(function ErrorPieChart({ errors }: Error
           />
         </PieChart>
       </ResponsiveContainer>
-    </div>
   )
 })

@@ -82,8 +82,7 @@ export const WeeklyChart = React.memo(function WeeklyChart() {
         <h3 className="mb-3 text-sm font-medium text-foreground">
           Hours by Day
         </h3>
-        <div className="h-48">
-          <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height={192}>
             <BarChart
               data={stackedData}
               margin={{ top: 4, right: 4, bottom: 4, left: 0 }}
@@ -124,15 +123,13 @@ export const WeeklyChart = React.memo(function WeeklyChart() {
               ))}
             </BarChart>
           </ResponsiveContainer>
-        </div>
       </div>
 
       <div className="rounded-xl border bg-card p-4">
         <h3 className="mb-3 text-sm font-medium text-foreground">
           Hours by Subject
         </h3>
-        <div className="h-48">
-          <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height={192}>
             <PieChart>
               <Pie
                 data={subjectTotals}
@@ -167,7 +164,6 @@ export const WeeklyChart = React.memo(function WeeklyChart() {
               />
             </PieChart>
           </ResponsiveContainer>
-        </div>
       </div>
     </div>
   )

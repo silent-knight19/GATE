@@ -231,8 +231,7 @@ export default function WeightagePage() {
             <CardTitle>Average Marks by Subject</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-72">
-              <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height={288}>
                 <BarChart data={avgChartData} margin={{ top: 8, right: 8, bottom: 16, left: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                   <XAxis
@@ -260,7 +259,6 @@ export default function WeightagePage() {
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
-            </div>
           </CardContent>
         </Card>
 
@@ -269,8 +267,7 @@ export default function WeightagePage() {
             <CardTitle>Year Comparison</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-72">
-              <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height={288}>
                 <BarChart data={yearCompareData} margin={{ top: 8, right: 8, bottom: 16, left: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                   <XAxis
@@ -297,7 +294,6 @@ export default function WeightagePage() {
                   ))}
                 </BarChart>
               </ResponsiveContainer>
-            </div>
           </CardContent>
         </Card>
       </div>
