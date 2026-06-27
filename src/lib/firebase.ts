@@ -30,7 +30,7 @@ if (isConfigured && typeof window !== 'undefined') {
   // Get a reCAPTCHA v3 site key from https://console.firebase.google.com → App Check
   try {
     initializeAppCheck(app, {
-      provider: new ReCaptchaV3Provider('YOUR_RECAPTCHA_V3_SITE_KEY'),
+      provider: new ReCaptchaV3Provider('6Lc5dzgtAAAAAOzEILhf6JcwlnJaJqwOqaldFril'),
       isTokenAutoRefreshEnabled: true,
     })
   } catch {
