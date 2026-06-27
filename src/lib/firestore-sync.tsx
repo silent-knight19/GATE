@@ -11,6 +11,8 @@ const STORE_FIELD = 'store'
 const PENDING_KEY = 'gateee-sync-pending'
 const MAX_RETRIES = 3
 const RETRY_DELAY_MS = 5000
+/** Minimum ms between visibility-triggered re-fetches to avoid hammering Firestore. */
+const VISIBILITY_REFETCH_COOLDOWN_MS = 30_000
 
 function buildPayload(state: ReturnType<typeof useAppStore.getState>): Record<string, unknown> {
   const payload = stripFunctions(state)
@@ -36,7 +38,12 @@ export function FirestoreSync() {
   const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const pendingSaveRef = useRef(false)
   const retryCountRef = useRef(0)
-  const skipNextSaveRef = useRef(false)
+  /**
+   * While true, all store subscription events are suppressed (they were caused
+   * by our own loadFromFirestore setState and must not be saved back).
+   * Reset 500 ms after load completes to let React flush all updates.
+   */
+  const isLoadingRef = useRef(false)
   const loadInProgressRef = useRef(false)
   const lastLoadTimeRef = useRef(0)
   const setSyncStatus = useAppStore((s) => s.setSyncStatus)
@@ -81,6 +88,8 @@ export function FirestoreSync() {
     if (loadInProgressRef.current) return
 
     loadInProgressRef.current = true
+    // Suppress all save events triggered by setState below
+    isLoadingRef.current = true
     setSyncStatus({ state: 'saving', lastError: null })
 
     try {
@@ -96,8 +105,6 @@ export function FirestoreSync() {
           ...current.topicsProgress,
           ...remoteTopics,
         }
-
-        skipNextSaveRef.current = true
 
         useAppStore.setState({
           user: (remote.user as typeof current.user) || current.user,
@@ -116,6 +123,12 @@ export function FirestoreSync() {
         const payload = buildPayload(current)
         await setDoc(ref, { [STORE_FIELD]: payload }, { merge: true })
         setSyncStatus({ state: 'saved' })
+      } else {
+        // No Firestore document yet (first-time user on this account) —
+        // upload local state so other devices can pick it up.
+        const payload = buildPayload(current)
+        await setDoc(ref, { [STORE_FIELD]: payload }, { merge: true })
+        setSyncStatus({ state: 'saved' })
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Unknown load error'
@@ -123,6 +136,11 @@ export function FirestoreSync() {
     } finally {
       loadInProgressRef.current = false
       lastLoadTimeRef.current = Date.now()
+      // Wait for React to flush all state updates before re-enabling saves,
+      // so we don't immediately overwrite Firestore with stale local data.
+      setTimeout(() => {
+        isLoadingRef.current = false
+      }, 500)
     }
   }, [user, setSyncStatus])
 
@@ -132,7 +150,6 @@ export function FirestoreSync() {
   }, [loadFromFirestore])
 
   // Load data from Firestore when user signs in or changes.
-  // Re-runs on every mount of this component (layout mount = page navigation).
   useEffect(() => {
     if (!isConfigured || !db || !user) return
 
@@ -146,13 +163,31 @@ export function FirestoreSync() {
     }
   }, [user, loadFromFirestore])
 
-  // Subscribe to store changes and debounce saves
+  // Re-fetch from Firestore whenever the tab becomes visible again.
+  // This is the key fix for cross-device sync: if you log data on device A,
+  // switching back to device B's tab will pull the latest Firestore data.
+  useEffect(() => {
+    if (!isConfigured || !db || !user) return
+
+    function handleVisibilityChange() {
+      if (document.visibilityState !== 'visible') return
+      const msSinceLastLoad = Date.now() - lastLoadTimeRef.current
+      if (msSinceLastLoad < VISIBILITY_REFETCH_COOLDOWN_MS) return
+      loadFromFirestore()
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+  }, [user, loadFromFirestore])
+
+  // Subscribe to store changes and debounce saves.
+  // Skip events that are triggered by our own loadFromFirestore() call.
   useEffect(() => {
     if (!isConfigured || !db || !user) return
 
     const unsub = useAppStore.subscribe((state) => {
-      if (skipNextSaveRef.current) {
-        skipNextSaveRef.current = false
+      if (isLoadingRef.current) {
+        // This change was caused by our remote load — don't echo it back to Firestore.
         return
       }
 
