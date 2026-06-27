@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useCallback } from 'react'
+import { useEffect, useCallback } from 'react'
 import { doc, setDoc, onSnapshot, type DocumentSnapshot } from 'firebase/firestore'
 import { db, isConfigured } from '@/lib/firebase'
 import { useAuth } from '@/lib/auth-context'
@@ -14,6 +14,13 @@ const STORE_FIELD = 'store'
 const PENDING_KEY = 'gateee-sync-pending'
 const MAX_RETRIES = 3
 const RETRY_DELAY_MS = 5000
+
+/** How long to wait before reconnecting the snapshot listener on error. */
+const SNAPSHOT_RECONNECT_BASE_MS = 1000
+const SNAPSHOT_RECONNECT_MAX_MS = 16000
+
+/** How often to verify the snapshot listener is alive (belt-and-suspenders). */
+const HEALTH_CHECK_INTERVAL_MS = 30000
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -57,7 +64,6 @@ function mergeLogs(
 ): StudyLogEntry[] {
   const seen = new Set<string>()
   const result: StudyLogEntry[] = []
-  // Remote first (authoritative), then fill in any local-only entries.
   for (const e of remote) {
     const k = logEntryKey(e)
     if (!seen.has(k)) { seen.add(k); result.push(e) }
@@ -104,7 +110,6 @@ function mergeDailyTasks(
     if (!existing) {
       byDate.set(g.date, g)
     } else {
-      // Merge tasks within the same day — union by task id.
       const taskById = new Map<string, (typeof existing.tasks)[0]>()
       for (const t of existing.tasks) taskById.set(t.id, t)
       for (const t of g.tasks) {
@@ -138,6 +143,78 @@ function mergeTopicsProgress(
 }
 
 // ---------------------------------------------------------------------------
+// Module-level mutable state — avoids the need for ref-during-render patterns.
+// Updated by useEffect inside the component.
+// ---------------------------------------------------------------------------
+
+let _currentUser: ReturnType<typeof useAuth>['user'] = null
+let _setSyncStatus: ((status: Partial<import('@/lib/store').SyncStatus>) => void) | null = null
+let _saveTimer: ReturnType<typeof setTimeout> | null = null
+let _retryTimer: ReturnType<typeof setTimeout> | null = null
+let _saveRetryCount = 0
+let _isSaving = false
+let _isDirty = false
+let _applyingRemote = false
+let _prevState: ReturnType<typeof useAppStore.getState> | null = null
+let _unsubscribeSnapshot: (() => void) | null = null
+let _snapshotErrorCount = 0
+let _snapshotReconnectTimer: ReturnType<typeof setTimeout> | null = null
+let _loadInProgress = false
+let _healthCheckTimer: ReturnType<typeof setInterval> | null = null
+
+// ---------------------------------------------------------------------------
+// doSave — always reads the CURRENT store state at call-time.
+// ---------------------------------------------------------------------------
+
+async function doSave() {
+  if (!_currentUser) return
+  if (_isSaving) return
+
+  _isSaving = true
+  _isDirty = false
+
+  const freshState = useAppStore.getState()
+
+  try {
+    _setSyncStatus?.({ state: 'saving', lastError: null })
+    const payload = buildPayload(freshState)
+    const ref = doc(db!, 'users', _currentUser.uid)
+    await setDoc(ref, { [STORE_FIELD]: payload }, { merge: true })
+    _saveRetryCount = 0
+    try { localStorage.removeItem(PENDING_KEY) } catch { /* ignore */ }
+    _setSyncStatus?.({ state: 'saved' })
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : 'Unknown save error'
+
+    if (_saveRetryCount < MAX_RETRIES) {
+      _saveRetryCount++
+      _isDirty = true
+      _setSyncStatus?.({
+        state: 'saving',
+        lastError: `Retrying (${_saveRetryCount}/${MAX_RETRIES})...`,
+      })
+      _retryTimer = setTimeout(() => { doSave() }, RETRY_DELAY_MS)
+    } else {
+      _saveRetryCount = 0
+      _setSyncStatus?.({ state: 'error', lastError: msg })
+    }
+  } finally {
+    _isSaving = false
+  }
+}
+
+// ---------------------------------------------------------------------------
+// scheduleSave — debounces saves. Called by the subscription.
+// ---------------------------------------------------------------------------
+
+function scheduleSave() {
+  _isDirty = true
+  if (_saveTimer) clearTimeout(_saveTimer)
+  _saveRetryCount = 0
+  _saveTimer = setTimeout(() => { doSave() }, SAVE_DEBOUNCE_MS)
+}
+
+// ---------------------------------------------------------------------------
 // Manual refresh hook
 // ---------------------------------------------------------------------------
 
@@ -153,74 +230,11 @@ export function triggerFirestoreRefresh(): Promise<void> {
 
 export function FirestoreSync() {
   const { user } = useAuth()
-  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const retryCountRef = useRef(0)
-  const isLoadingRef = useRef(false)
-  const loadInProgressRef = useRef(false)
-  const prevStateRef = useRef<ReturnType<typeof useAppStore.getState> | null>(null)
-  const isSavingRef = useRef(false)
-  const isDirtyRef = useRef(false)
-  const unsubscribeRef = useRef<(() => void) | null>(null)
-  /** True while we're applying a remote snapshot — suppresses save trigger. */
-  const applyingRemoteRef = useRef(false)
-
   const setSyncStatus = useAppStore((s) => s.setSyncStatus)
 
-  // ------------------------------------------------------------------
-  // doSave — always reads the CURRENT store state at call-time.
-  // ------------------------------------------------------------------
-  const doSave = useCallback(async () => {
-    if (!db || !user) return
-    if (isSavingRef.current) return
-
-    isSavingRef.current = true
-    isDirtyRef.current = false
-
-    const freshState = useAppStore.getState()
-
-    try {
-      setSyncStatus({ state: 'saving', lastError: null })
-      const payload = buildPayload(freshState)
-      const ref = doc(db, 'users', user.uid)
-      await setDoc(ref, { [STORE_FIELD]: payload }, { merge: true })
-      retryCountRef.current = 0
-      try { localStorage.removeItem(PENDING_KEY) } catch { /* ignore */ }
-      setSyncStatus({ state: 'saved' })
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Unknown save error'
-
-      if (retryCountRef.current < MAX_RETRIES) {
-        retryCountRef.current++
-        isDirtyRef.current = true
-        setSyncStatus({
-          state: 'saving',
-          lastError: `Retrying (${retryCountRef.current}/${MAX_RETRIES})...`,
-        })
-        retryTimerRef.current = setTimeout(() => { doSaveRef.current() }, RETRY_DELAY_MS)
-      } else {
-        retryCountRef.current = 0
-        setSyncStatus({ state: 'error', lastError: msg })
-      }
-    } finally {
-      isSavingRef.current = false
-    }
-  }, [user, setSyncStatus])
-
-  const doSaveRef = useRef<() => void>()
-  doSaveRef.current = doSave
-
-  // ------------------------------------------------------------------
-  // scheduleSave — debounces saves. Called by the subscription.
-  // ------------------------------------------------------------------
-  const scheduleSave = useCallback(() => {
-    isDirtyRef.current = true
-    if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
-    retryCountRef.current = 0
-    saveTimerRef.current = setTimeout(() => {
-      doSaveRef.current()
-    }, SAVE_DEBOUNCE_MS)
-  }, [])
+  // Keep module-level state in sync with the latest React values.
+  useEffect(() => { _currentUser = user }, [user])
+  useEffect(() => { _setSyncStatus = setSyncStatus }, [setSyncStatus])
 
   // ------------------------------------------------------------------
   // applyRemoteSnapshot — merges remote Firestore data into local store
@@ -232,7 +246,7 @@ export function FirestoreSync() {
 
       const remoteTopics = (remote.topicsProgress || {}) as Record<string, TopicStatus>
 
-      applyingRemoteRef.current = true
+      _applyingRemote = true
       useAppStore.setState({
         user: (remote.user as typeof current.user) || current.user,
         topicsProgress: mergeTopicsProgress(current.topicsProgress, remoteTopics),
@@ -251,10 +265,8 @@ export function FirestoreSync() {
         appState: (remote.appState as typeof current.appState) || current.appState,
       } as Partial<typeof current>)
 
-      // Update baseline so the subscription doesn't re-trigger a save.
-      prevStateRef.current = useAppStore.getState()
-      // Allow one tick for React to flush before re-enabling save triggers.
-      setTimeout(() => { applyingRemoteRef.current = false }, 0)
+      _prevState = useAppStore.getState()
+      setTimeout(() => { _applyingRemote = false }, 0)
     },
     [],
   )
@@ -265,88 +277,107 @@ export function FirestoreSync() {
   // ------------------------------------------------------------------
   const handleSnapshot = useCallback(
     async (snap: DocumentSnapshot) => {
-      if (!snap.exists() || !snap.data()?.[STORE_FIELD]) {
-        // Remote is empty — push local state up so other devices get it.
-        if (!isSavingRef.current) {
+      // If the document truly doesn't exist yet, seed it with current local data.
+      // But if the document exists without a store field, just wait — don't overwrite.
+      if (!snap.exists()) {
+        if (!_isSaving && _currentUser) {
           const current = useAppStore.getState()
           const payload = buildPayload(current)
           try {
-            const ref = doc(db!, 'users', user!.uid)
+            const ref = doc(db!, 'users', _currentUser.uid)
             await setDoc(ref, { [STORE_FIELD]: payload }, { merge: true })
-            setSyncStatus({ state: 'saved' })
+            _setSyncStatus?.({ state: 'saved', lastError: null })
           } catch {
-            // Will be retried by the subscription
+            // Will be retried by the save subscription
           }
         }
         return
       }
 
-      const remote = snap.data()[STORE_FIELD] as Record<string, unknown>
+      const remote = snap.data()[STORE_FIELD] as Record<string, unknown> | undefined
+      if (!remote) {
+        // Document exists but store field is missing — skip to avoid wiping remote data.
+        _setSyncStatus?.({ state: 'saved' })
+        return
+      }
+
       applyRemoteSnapshot(remote)
 
-      // Update the pending stash so it reflects the latest merged state
-      // (guards against a crash between snapshot and next save).
       try {
         const freshPayload = buildPayload(useAppStore.getState())
         localStorage.setItem(PENDING_KEY, JSON.stringify(freshPayload))
       } catch { /* ignore quota errors */ }
 
-      setSyncStatus({ state: 'saved' })
+      _setSyncStatus?.({ state: 'saved' })
     },
-    [user, applyRemoteSnapshot, setSyncStatus],
+    [applyRemoteSnapshot],
   )
 
   // ------------------------------------------------------------------
   // subscribeToFirestore — sets up the real-time onSnapshot listener.
   // ------------------------------------------------------------------
   const subscribeToFirestore = useCallback(() => {
-    if (!db || !user) return
-    if (loadInProgressRef.current) return
+    if (!db || !_currentUser) return
 
-    loadInProgressRef.current = true
-    isLoadingRef.current = true
-    setSyncStatus({ state: 'saving', lastError: null })
+    // Clear any pending reconnect timer since we're about to create a fresh listener.
+    if (_snapshotReconnectTimer) {
+      clearTimeout(_snapshotReconnectTimer)
+      _snapshotReconnectTimer = null
+    }
+
+    _loadInProgress = true
+    _setSyncStatus?.({ state: 'saving', lastError: null })
 
     try {
-      const ref = doc(db, 'users', user.uid)
+      const ref = doc(db, 'users', _currentUser.uid)
       const unsub = onSnapshot(
         ref,
         (snap) => {
+          _snapshotErrorCount = 0
           handleSnapshot(snap)
-          loadInProgressRef.current = false
-          setTimeout(() => {
-            isLoadingRef.current = false
-            prevStateRef.current = useAppStore.getState()
-          }, 500)
+          _loadInProgress = false
+          _prevState = useAppStore.getState()
         },
         (error) => {
           const msg = error instanceof Error ? error.message : 'Snapshot error'
-          setSyncStatus({ state: 'error', lastError: msg })
-          loadInProgressRef.current = false
-          setTimeout(() => { isLoadingRef.current = false }, 500)
+          _setSyncStatus?.({ state: 'error', lastError: msg })
+          _loadInProgress = false
+          _unsubscribeSnapshot = null
+
+          // Reconnect with exponential backoff.
+          _snapshotErrorCount++
+          const delay = Math.min(
+            SNAPSHOT_RECONNECT_BASE_MS * Math.pow(2, _snapshotErrorCount - 1),
+            SNAPSHOT_RECONNECT_MAX_MS,
+          )
+          _snapshotReconnectTimer = setTimeout(() => {
+            _snapshotReconnectTimer = null
+            subscribeToFirestore()
+          }, delay)
         },
       )
-      unsubscribeRef.current = unsub
+      _unsubscribeSnapshot = unsub
+      _loadInProgress = false
     } catch {
-      loadInProgressRef.current = false
-      setTimeout(() => { isLoadingRef.current = false }, 500)
+      _loadInProgress = false
     }
-  }, [user, handleSnapshot, setSyncStatus])
+  }, [handleSnapshot])
 
   // Expose for the manual refresh button.
   useEffect(() => {
     _manualRefresh = async () => {
-      // Re-fetch: unsubscribe then re-subscribe, or just do a one-shot read
-      // if already subscribed (onSnapshot will deliver the latest anyway).
-      if (!unsubscribeRef.current) {
+      if (_snapshotReconnectTimer) {
+        clearTimeout(_snapshotReconnectTimer)
+        _snapshotReconnectTimer = null
+      }
+      _snapshotErrorCount = 0
+      if (!_unsubscribeSnapshot) {
         subscribeToFirestore()
       }
-      // If already subscribed, onSnapshot already delivers changes.
-      // But force a status indicator for the manual refresh UX.
-      setSyncStatus({ state: 'saving', lastError: null })
+      _setSyncStatus?.({ state: 'saving', lastError: null })
     }
     return () => { _manualRefresh = null }
-  }, [subscribeToFirestore, setSyncStatus])
+  }, [subscribeToFirestore])
 
   // ------------------------------------------------------------------
   // Flush any pending save that was stashed to localStorage on a
@@ -373,30 +404,41 @@ export function FirestoreSync() {
   // ------------------------------------------------------------------
   useEffect(() => {
     if (!isConfigured || !db || !user) {
-      // Clean up listener on sign-out.
-      if (unsubscribeRef.current) {
-        unsubscribeRef.current()
-        unsubscribeRef.current = null
+      if (_unsubscribeSnapshot) {
+        _unsubscribeSnapshot()
+        _unsubscribeSnapshot = null
       }
+      if (_snapshotReconnectTimer) {
+        clearTimeout(_snapshotReconnectTimer)
+        _snapshotReconnectTimer = null
+      }
+      _loadInProgress = false
+      _snapshotErrorCount = 0
       return
     }
 
     if (useAppStore.persist.hasHydrated()) {
-      prevStateRef.current = useAppStore.getState()
+      _prevState = useAppStore.getState()
       subscribeToFirestore()
     } else {
       const unsub = useAppStore.persist.onFinishHydration(() => {
-        prevStateRef.current = useAppStore.getState()
+        _prevState = useAppStore.getState()
         subscribeToFirestore()
       })
       return () => { unsub() }
     }
 
     return () => {
-      if (unsubscribeRef.current) {
-        unsubscribeRef.current()
-        unsubscribeRef.current = null
+      if (_unsubscribeSnapshot) {
+        _unsubscribeSnapshot()
+        _unsubscribeSnapshot = null
       }
+      if (_snapshotReconnectTimer) {
+        clearTimeout(_snapshotReconnectTimer)
+        _snapshotReconnectTimer = null
+      }
+      _loadInProgress = false
+      _snapshotErrorCount = 0
     }
   }, [user, subscribeToFirestore])
 
@@ -409,23 +451,43 @@ export function FirestoreSync() {
     if (!isConfigured || !db || !user) return
 
     const unsub = useAppStore.subscribe((state) => {
-      if (isLoadingRef.current) return
-      if (applyingRemoteRef.current) return
+      if (_applyingRemote) return
 
-      if (prevStateRef.current && !hasDataChanged(prevStateRef.current, state)) {
+      if (_prevState && !hasDataChanged(_prevState, state)) {
         return
       }
-      prevStateRef.current = state
+      _prevState = state
 
       scheduleSave()
     })
 
     return () => {
       unsub()
-      if (saveTimerRef.current) { clearTimeout(saveTimerRef.current); saveTimerRef.current = null }
-      if (retryTimerRef.current) { clearTimeout(retryTimerRef.current); retryTimerRef.current = null }
+      if (_saveTimer) { clearTimeout(_saveTimer); _saveTimer = null }
+      if (_retryTimer) { clearTimeout(_retryTimer); _retryTimer = null }
     }
-  }, [user, scheduleSave])
+  }, [user])
+
+  // ------------------------------------------------------------------
+  // Periodic health check — ensures the snapshot listener is alive.
+  // If it's been lost for any reason, reconnects automatically.
+  // ------------------------------------------------------------------
+  useEffect(() => {
+    if (!isConfigured || !db || !user) return
+
+    _healthCheckTimer = setInterval(() => {
+      if (!_unsubscribeSnapshot && !_loadInProgress && !_snapshotReconnectTimer) {
+        subscribeToFirestore()
+      }
+    }, HEALTH_CHECK_INTERVAL_MS)
+
+    return () => {
+      if (_healthCheckTimer) {
+        clearInterval(_healthCheckTimer)
+        _healthCheckTimer = null
+      }
+    }
+  }, [user, subscribeToFirestore])
 
   // ------------------------------------------------------------------
   // Stash unsaved changes to localStorage on page unload so they can
@@ -433,7 +495,7 @@ export function FirestoreSync() {
   // ------------------------------------------------------------------
   useEffect(() => {
     function stashIfDirty() {
-      if (!isDirtyRef.current) return
+      if (!_isDirty) return
       try {
         const payload = buildPayload(useAppStore.getState())
         localStorage.setItem(PENDING_KEY, JSON.stringify(payload))

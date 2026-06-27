@@ -1,7 +1,6 @@
 import { initializeApp, getApps } from 'firebase/app'
 import { getAuth, GoogleAuthProvider } from 'firebase/auth'
 import { getFirestore } from 'firebase/firestore'
-import { initializeAppCheck, ReCaptchaV3Provider } from 'firebase/app-check'
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -25,17 +24,6 @@ if (isConfigured && typeof window !== 'undefined') {
   db = getFirestore(app)
   googleProvider = new GoogleAuthProvider()
   googleProvider.setCustomParameters({ prompt: 'select_account' })
-
-  // Firebase App Check — prevents API abuse from unauthorized clients.
-  // Get a reCAPTCHA v3 site key from https://console.firebase.google.com → App Check
-  try {
-    initializeAppCheck(app, {
-      provider: new ReCaptchaV3Provider('6Lc5dzgtAAAAAOzEILhf6JcwlnJaJqwOqaldFril'),
-      isTokenAutoRefreshEnabled: true,
-    })
-  } catch {
-    // App Check initialization failure should not block the app
-  }
 }
 
 export { app, auth, db, googleProvider, isConfigured }
