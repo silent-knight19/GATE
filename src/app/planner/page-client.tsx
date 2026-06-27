@@ -52,6 +52,15 @@ export default function PlannerPage() {
   const [taskToDelete, setTaskToDelete] = useState<{ date: string, taskId: string } | null>(null)
   const [showClearAllConfirm, setShowClearAllConfirm] = useState(false)
 
+  // Notification state (replaces alert())
+  const [notification, setNotification] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!notification) return
+    const id = setTimeout(() => setNotification(null), 3000)
+    return () => clearTimeout(id)
+  }, [notification])
+
   const overall = useMemo(() => getOverallProgress(), [topicsProgress, getOverallProgress])
   const [todayStr, setTodayStr] = useState(() => format(new Date(), "yyyy-MM-dd"))
 
@@ -375,6 +384,7 @@ export default function PlannerPage() {
                 timeSlot: "evening",
               })
               alert("Added revision task to today's schedule!")
+              setNotification("Added revision task to today's schedule!")
             }}
           />
         </div>
@@ -432,6 +442,12 @@ export default function PlannerPage() {
         }}
         onCancel={() => setShowClearAllConfirm(false)}
       />
+      
+      {notification && (
+        <div className="fixed bottom-6 right-6 z-50 animate-fade-in-up rounded-xl border border-primary/20 bg-primary/10 px-4 py-3 text-sm font-medium text-primary shadow-lg backdrop-blur-md">
+          {notification}
+        </div>
+      )}
     </div>
   )
 }

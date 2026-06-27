@@ -58,14 +58,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
+  const clearLocalAppData = useCallback(() => {
+    try {
+      localStorage.removeItem('gateee-store')
+      localStorage.removeItem('gateee-sync-pending')
+      localStorage.removeItem('gateee-theme')
+    } catch {
+      // localStorage access may fail in some environments
+    }
+  }, [])
+
   const signOut = useCallback(async () => {
     if (!auth) return
     try {
+      clearLocalAppData()
       await firebaseSignOut(auth)
     } catch (err: unknown) {
-      console.error('Sign out error:', err)
+      if (process.env.NODE_ENV !== 'production') {
+        console.error('Sign out error:', err)
+      }
     }
-  }, [])
+  }, [clearLocalAppData])
 
   const clearError = useCallback(() => setError(null), [])
 

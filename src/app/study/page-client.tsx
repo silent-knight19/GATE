@@ -65,6 +65,7 @@ export default function StudyPage() {
     () =>
       mounted
         ? [...logs]
+            .filter((l) => new Date(l.date + "T00:00:00") >= subDays(new Date(), 3))
             .sort((a, b) => b.date.localeCompare(a.date) || b.hours - a.hours)
             .slice(0, 20)
         : [],

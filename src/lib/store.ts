@@ -296,7 +296,7 @@ export const useAppStore = create<AppStore>()(
 
         addLogEntry: (entry) =>
           set(state => ({
-            logs: [...state.logs, { ...entry, date: format(new Date(), 'yyyy-MM-dd') }]
+            logs: [...state.logs, { ...entry, date: format(new Date(), 'yyyy-MM-dd') }].slice(-5000)
           })),
 
         removeLogEntry: (index) =>
@@ -346,7 +346,7 @@ export const useAppStore = create<AppStore>()(
         tests: [],
 
         addMockTest: (test) =>
-          set(state => ({ tests: [...state.tests, test] })),
+          set(state => ({ tests: [...state.tests, test].slice(-500) })),
 
         removeMockTest: (id) =>
           set(state => ({ tests: state.tests.filter(t => t.id !== id) })),
@@ -555,7 +555,7 @@ export const useAppStore = create<AppStore>()(
               totalHours: newTask.estimatedHours,
               completedHours: 0,
             }
-            return { dailyTasks: [...state.dailyTasks, newGroup] }
+            return { dailyTasks: [...state.dailyTasks, newGroup].slice(-365) }
           })
         },
 
@@ -667,7 +667,7 @@ export const useAppStore = create<AppStore>()(
             } else {
               updated.push(entry)
             }
-            return { revisionHistory: updated }
+            return { revisionHistory: updated.slice(-2000) }
           }),
 
         updateConfidence: (topicId, confidence) =>

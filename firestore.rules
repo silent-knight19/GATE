@@ -2,7 +2,26 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     match /users/{userId} {
-      allow read, write: if request.auth.uid == userId;
+      allow read: if request.auth.uid == userId;
+      allow write: if request.auth.uid == userId
+        && (request.resource == null
+            || (request.resource.data is map
+                && validateStore(request.resource.data)));
+
+      function validateStore(data) {
+        let store = data.store;
+        return store is map
+          && (!store.keys().hasAny(['topicsProgress']) || store.topicsProgress is map)
+          && (!store.keys().hasAny(['logs']) || (store.logs is list && store.logs.size() <= 5000))
+          && (!store.keys().hasAny(['tests']) || (store.tests is list && store.tests.size() <= 500))
+          && (!store.keys().hasAny(['dailyTasks']) || (store.dailyTasks is list && store.dailyTasks.size() <= 365))
+          && (!store.keys().hasAny(['weeklyTargets']) || (store.weeklyTargets is list && store.weeklyTargets.size() <= 52))
+          && (!store.keys().hasAny(['revisionHistory']) || (store.revisionHistory is list && store.revisionHistory.size() <= 2000))
+          && (!store.keys().hasAny(['user']) || store.user is map)
+          && (!store.keys().hasAny(['plannerSettings']) || store.plannerSettings is map)
+          && (!store.keys().hasAny(['appState']) || store.appState is map)
+          && data.size() < 1000000;
+      }
     }
     match /{document=**} {
       allow read, write: if false;
