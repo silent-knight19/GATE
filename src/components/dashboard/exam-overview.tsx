@@ -43,7 +43,7 @@ function ExamOverview() {
           </div>
           <div>
             <p className="text-xs text-muted-foreground">Exam Date</p>
-            <p className="text-lg font-bold tabular-nums">Feb 6, 2027</p>
+            <p className="text-lg font-bold tabular-nums">Feb 7, 2027</p>
           </div>
         </div>
       </div>
@@ -55,7 +55,7 @@ function ExamOverview() {
           <div className="flex items-center gap-2">
             <BarChart3 className="size-4 text-muted-foreground" />
             <h2 className="text-sm font-semibold animate-fade-in-up">
-              {sortBy === "weightage" ? "Subject Weightage (5-Year Average 2021-2025)" : "Estimated Study Time Required"}
+              {sortBy === "weightage" ? "Subject Weightage (5-Year Average 2022-2026)" : "Estimated Study Time Required"}
             </h2>
           </div>
           <div className="flex items-center gap-1 bg-secondary/50 rounded-lg p-0.5 border border-border/50 self-start sm:self-auto">

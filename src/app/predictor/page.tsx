@@ -38,7 +38,7 @@ export default function Page() {
             This tool helps GATE CSE 2027 aspirants estimate their All India Rank (AIR) from expected marks.
             It converts raw marks (out of 100) to a normalized GATE score (out of 1000) using the official
             normalization formula, then maps it to an estimated rank range based on historical data from
-            2021&ndash;2025.
+            2022&ndash;2026.
           </p>
           <p>
             The College Predictor tab shows which IITs, NITs, and IIITs you may be eligible for based on

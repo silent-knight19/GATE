@@ -5,6 +5,7 @@ import type { TopicStatus } from '@/lib/data/syllabus'
 import { syllabus } from '@/lib/data/syllabus'
 
 export interface StudyLogEntry {
+  id?: string
   date: string
   subjectId: string
   topicId: string
@@ -112,7 +113,7 @@ interface AppStore {
   getTopicsForSubject: (subjectId: string) => { id: string; name: string; status: TopicStatus }[]
 
   logs: StudyLogEntry[]
-  addLogEntry: (entry: Omit<StudyLogEntry, 'date'>) => void
+  addLogEntry: (entry: Omit<StudyLogEntry, 'date' | 'id'>) => void
   removeLogEntry: (index: number) => void
   getStreak: () => number
   getTotalHours: () => number
@@ -296,7 +297,7 @@ export const useAppStore = create<AppStore>()(
 
         addLogEntry: (entry) =>
           set(state => ({
-            logs: [...state.logs, { ...entry, date: format(new Date(), 'yyyy-MM-dd') }].slice(-5000)
+            logs: [...state.logs, { ...entry, id: generateId(), date: format(new Date(), 'yyyy-MM-dd') }].slice(-5000)
           })),
 
         removeLogEntry: (index) =>

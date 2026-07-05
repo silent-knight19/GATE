@@ -17,10 +17,10 @@ import { subjectWeightages } from '@/lib/data/examData'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { ArrowUp, ArrowDown, Minus } from 'lucide-react'
 
-type SortKey = 'subject' | 2021 | 2022 | 2023 | 2024 | 2025 | 'avg' | 'trend'
+type SortKey = 'subject' | 2022 | 2023 | 2024 | 2025 | 2026 | 'avg' | 'trend'
 type SortDir = 'asc' | 'desc'
 
-const YEARS = [2021, 2022, 2023, 2024, 2025] as const
+const YEARS = [2022, 2023, 2024, 2025, 2026] as const
 
 function getBarColor(val: number): string {
   if (val > 9) return '#22c55e'
@@ -60,25 +60,25 @@ export default function WeightagePage() {
         for (const ym of s.yearMarks) {
           yearMap[ym.year] = ym.marks
         }
-        const marks2021 = yearMap[2021] ?? 0
         const marks2022 = yearMap[2022] ?? 0
         const marks2023 = yearMap[2023] ?? 0
         const marks2024 = yearMap[2024] ?? 0
         const marks2025 = yearMap[2025] ?? 0
+        const marks2026 = yearMap[2026] ?? 0
         const avg = s.avgMarks
         const trend = sw?.trend ?? 'stable'
-        const first = marks2021
-        const last = marks2025
+        const first = marks2022
+        const last = marks2026
         const change = last - first
         return {
           subject: s.shortName,
           subjectId: s.id,
           color: s.color,
-          2021: marks2021,
           2022: marks2022,
           2023: marks2023,
           2024: marks2024,
           2025: marks2025,
+          2026: marks2026,
           avg,
           trend,
           change,
@@ -121,11 +121,11 @@ export default function WeightagePage() {
   const yearCompareData = useMemo(() => {
     return rows.map((r) => ({
       subject: r.subject,
-      2021: r[2021],
       2022: r[2022],
       2023: r[2023],
       2024: r[2024],
       2025: r[2025],
+      2026: r[2026],
     }))
   }, [rows])
 
@@ -141,7 +141,7 @@ export default function WeightagePage() {
     let v = rows[0]
     let maxRange = 0
     for (const r of rows) {
-      const vals = [r[2021], r[2022], r[2023], r[2024], r[2025]]
+      const vals = [r[2022], r[2023], r[2024], r[2025], r[2026]]
       const mn = Math.min(...vals)
       const mx = Math.max(...vals)
       const range = mx - mn
@@ -150,7 +150,7 @@ export default function WeightagePage() {
         v = r
       }
     }
-    return { ...v, min: Math.min(...[v[2021], v[2022], v[2023], v[2024], v[2025]]), max: Math.max(...[v[2021], v[2022], v[2023], v[2024], v[2025]]) }
+    return { ...v, min: Math.min(...[v[2022], v[2023], v[2024], v[2025], v[2026]]), max: Math.max(...[v[2022], v[2023], v[2024], v[2025], v[2026]]) }
   }, [rows])
 
   const improved = useMemo(() => {
@@ -173,7 +173,7 @@ export default function WeightagePage() {
     <div className="min-h-screen bg-background p-4 md:p-6 space-y-6">
       <div>
         <h1 className="text-2xl font-bold">Weightage Analysis</h1>
-        <p className="text-sm text-muted-foreground">5-year marks distribution (2021–2025)</p>
+        <p className="text-sm text-muted-foreground">5-year marks distribution (2022–2026)</p>
       </div>
 
       <Card>
@@ -185,18 +185,18 @@ export default function WeightagePage() {
             <thead>
               <tr className="border-b">
                 <SortHeader k="subject" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort}>Subject</SortHeader>
-                <SortHeader k={2021} sortKey={sortKey} sortDir={sortDir} onSort={toggleSort}>2021</SortHeader>
                 <SortHeader k={2022} sortKey={sortKey} sortDir={sortDir} onSort={toggleSort}>2022</SortHeader>
                 <SortHeader k={2023} sortKey={sortKey} sortDir={sortDir} onSort={toggleSort}>2023</SortHeader>
                 <SortHeader k={2024} sortKey={sortKey} sortDir={sortDir} onSort={toggleSort}>2024</SortHeader>
                 <SortHeader k={2025} sortKey={sortKey} sortDir={sortDir} onSort={toggleSort}>2025</SortHeader>
+                <SortHeader k={2026} sortKey={sortKey} sortDir={sortDir} onSort={toggleSort}>2026</SortHeader>
                 <SortHeader k="avg" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort}>Avg</SortHeader>
                 <SortHeader k="trend" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort}>Trend</SortHeader>
               </tr>
             </thead>
             <tbody>
               {sorted.map((r) => {
-                const vals = [r[2021], r[2022], r[2023], r[2024], r[2025]]
+                const vals = [r[2022], r[2023], r[2024], r[2025], r[2026]]
                 return (
                   <tr key={r.subjectId} className="border-b border-border/40 hover:bg-muted/40 transition-colors">
                     <td className="px-3 py-2.5 font-medium">{r.subject}</td>

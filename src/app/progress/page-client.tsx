@@ -149,8 +149,8 @@ export default function ProgressPage() {
             </div>
             <div>
               <p className="text-xs text-muted-foreground">Days to GATE</p>
-              <p className="text-lg font-bold tabular-nums">{Math.round((new Date(2027, 1, 6).getTime() - new Date().getTime()) / 86400000)}</p>
-              <p className="text-[10px] text-muted-foreground">Feb 6, 2027</p>
+              <p className="text-lg font-bold tabular-nums">{Math.round((new Date(2027, 1, 7).getTime() - new Date().getTime()) / 86400000)}</p>
+              <p className="text-[10px] text-muted-foreground">Feb 7, 2027</p>
             </div>
           </CardContent>
         </Card>

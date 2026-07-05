@@ -105,7 +105,7 @@ export function SubjectDetail({ subject }: { subject: Subject }) {
           <div>
             <h1 className="text-xl font-bold text-foreground">{subject.name}</h1>
             <p className="text-xs text-muted-foreground">
-              {stats ? `~${stats.avgMarks} marks avg (2021-2025) · ${stats.weightage}% weightage` : `${subject.avgMarks} marks avg`}
+              {stats ? `~${stats.avgMarks} marks avg (2022-2026) · ${stats.weightage}% weightage` : `${subject.avgMarks} marks avg`}
             </p>
           </div>
         </div>
@@ -170,7 +170,7 @@ export function SubjectDetail({ subject }: { subject: Subject }) {
       <div className="rounded-xl border border-border bg-card p-4">
         <div className="mb-3 flex items-center gap-2">
           <BarChart3 className="size-4 text-muted-foreground" />
-          <span className="text-sm font-medium">Year-wise Marks Distribution (2021-2025)</span>
+          <span className="text-sm font-medium">Year-wise Marks Distribution (2022-2026)</span>
         </div>
         <ResponsiveContainer width="100%" height={192}>
             <BarChart data={yearChartData} margin={{ top: 0, right: 10, left: -10, bottom: 0 }}>
