@@ -166,7 +166,7 @@ export default function StudyPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {recentLogs.map((log, i) => {
+                    {recentLogs.slice(0, 8).map((log, i) => {
                       const topic = syllabus
                         .flatMap((s) => s.topics)
                         .find((t) => t.id === log.topicId)
