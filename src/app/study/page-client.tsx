@@ -102,8 +102,13 @@ export default function StudyPage() {
 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
         <Card>
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Today&apos;s Log</CardTitle>
+            {todayLogs.length > 0 && (
+              <span className="text-sm text-muted-foreground">
+                Total: <span className="font-mono text-foreground">{todayLogs.reduce((acc, log) => acc + log.hours, 0).toFixed(2)}h</span>
+              </span>
+            )}
           </CardHeader>
           <CardContent>
             {todayLogs.length === 0 ? (
