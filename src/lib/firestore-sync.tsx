@@ -18,17 +18,31 @@ const SNAPSHOT_RECONNECT_DELAY_MS = 3000
 // Helpers
 // ---------------------------------------------------------------------------
 
+function removeUndefined(obj: any): any {
+  if (obj === undefined) return null;
+  if (obj === null || typeof obj !== 'object') return obj;
+  if (Array.isArray(obj)) return obj.map(removeUndefined);
+  const result: any = {};
+  for (const [k, v] of Object.entries(obj)) {
+    if (v !== undefined) {
+      result[k] = removeUndefined(v);
+    }
+  }
+  return result;
+}
+
 function buildPayload(state: ReturnType<typeof useAppStore.getState>): Record<string, unknown> {
   const payload = stripFunctions(state)
   delete payload.syncStatus
   delete payload.timerState
   delete payload.setTimerState
-  return payload
+  return removeUndefined(payload)
 }
 
 const DATA_KEYS = [
   'user', 'topicsProgress', 'logs', 'tests', 'dailyTasks',
   'weeklyTargets', 'plannerSettings', 'revisionHistory', 'appState',
+  'deletedGoogleEvents',
 ] as const
 
 function hasDataChanged(

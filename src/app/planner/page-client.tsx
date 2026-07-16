@@ -137,6 +137,7 @@ export default function PlannerPage() {
   const confirmDeleteTask = useCallback(() => {
     if (taskToDelete) {
       removeTask(taskToDelete.date, taskToDelete.taskId)
+      setIsModalOpen(false)
       setTaskToDelete(null)
     }
   }, [taskToDelete, removeTask])
@@ -264,19 +265,65 @@ export default function PlannerPage() {
             Plan your weeks, track your daily tasks, and maintain your velocity.
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="default" size="sm" onClick={() => handleAddTask(todayStr)}>
-            <Plus className="size-4 mr-1" />
-            Add Task
-          </Button>
-        </div>
       </div>
 
-      {/* Main Content Layout */}
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_320px]">
-        {/* Left Column: Today Hero & Calendar */}
-        <div className="space-y-5">
-          {/* Today Hero (Full width of left column) */}
+      {/* Main Content: Schedule (Full Width) */}
+      <div className="w-full">
+        <Card>
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base">Schedule</CardTitle>
+              <div className="flex items-center gap-1 rounded-lg border p-0.5">
+                <button
+                  onClick={() => setViewMode("week")}
+                  className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
+                    viewMode === "week" ? "bg-muted text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  <CalendarDays className="size-3.5 inline mr-1" />
+                  Week
+                </button>
+                <button
+                  onClick={() => setViewMode("month")}
+                  className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
+                    viewMode === "month" ? "bg-muted text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  <CalendarRange className="size-3.5 inline mr-1" />
+                  Month
+                </button>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {viewMode === "week" ? (
+              <div className="overflow-x-auto pb-2">
+                <WeekCalendar
+                  groups={dailyTasks}
+                  onToggleTask={handleToggleTask}
+                  onSelectDay={setSelectedDay}
+                  onAddTask={(date) => handleAddTask(date)}
+                  onEditTask={(date, task) => handleEditTask(date, task)}
+                  onDeleteTask={(date, taskId) => handleDeleteTask(date, taskId)}
+                />
+              </div>
+            ) : (
+              <MonthCalendar
+                groups={dailyTasks}
+                onSelectDay={setSelectedDay}
+                onAddTask={(date) => handleAddTask(date)}
+                onEditTask={(date, task) => handleEditTask(date, task)}
+                onDeleteTask={(date, taskId) => handleDeleteTask(date, taskId)}
+              />
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Bottom Widgets Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        {/* Left: Today Hero */}
+        <div className="lg:col-span-2">
           <TodayHero
             group={todayGroup}
             todayStr={todayStr}
@@ -286,57 +333,9 @@ export default function PlannerPage() {
             onDeleteTask={(taskId) => handleDeleteTask(todayStr, taskId)}
             onRetrySync={(taskId) => retrySync(todayStr, taskId)}
           />
-
-          {/* Calendar */}
-          <Card>
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-base">Schedule</CardTitle>
-                <div className="flex items-center gap-1 rounded-lg border p-0.5">
-                  <button
-                    onClick={() => setViewMode("week")}
-                    className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
-                      viewMode === "week" ? "bg-muted text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    <CalendarDays className="size-3.5 inline mr-1" />
-                    Week
-                  </button>
-                  <button
-                    onClick={() => setViewMode("month")}
-                    className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
-                      viewMode === "month" ? "bg-muted text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    <CalendarRange className="size-3.5 inline mr-1" />
-                    Month
-                  </button>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {viewMode === "week" ? (
-                <div className="overflow-x-auto pb-2">
-                  <WeekCalendar
-                    groups={dailyTasks}
-                    onToggleTask={handleToggleTask}
-                    onSelectDay={setSelectedDay}
-                    onAddTask={(date) => handleAddTask(date)}
-                    onEditTask={(date, task) => handleEditTask(date, task)}
-                    onDeleteTask={(date, taskId) => handleDeleteTask(date, taskId)}
-                  />
-                </div>
-              ) : (
-                <MonthCalendar
-                  groups={dailyTasks}
-                  onSelectDay={setSelectedDay}
-                />
-              )}
-            </CardContent>
-          </Card>
         </div>
 
-        {/* Right Column: Widgets */}
+        {/* Right: Pace Tracker & Revision Queue */}
         <div className="space-y-5">
           {/* Velocity Gauge */}
           <Card>
@@ -392,6 +391,7 @@ export default function PlannerPage() {
           />
         </div>
       </div>
+
 
       {/* Day View Slide-out / Modal */}
       {selectedDay && (

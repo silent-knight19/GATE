@@ -6,7 +6,7 @@ import { syllabus } from "@/lib/data/syllabus"
 import type { Task } from "@/lib/store"
 import { Button } from "@/components/ui/button"
 import { ConfirmModal } from "@/components/ui/confirm-modal"
-import { X, Clock, RefreshCw, CheckCircle2 } from "lucide-react"
+import { X, Clock, RefreshCw, CheckCircle2, Calendar, Tag, BookOpen, Hash, Flag, Trash2 } from "lucide-react"
 import { useAppStore } from "@/lib/store"
 import {
   connectGoogleCalendar,
@@ -170,180 +170,184 @@ export function AddTaskModal({
   const computedHours = calculateHours(startTime, endTime)
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="mx-4 w-full max-w-md rounded-xl border border-border bg-card shadow-xl">
-        {/* Header */}
-        <div className="flex items-center justify-between border-b border-border px-4 py-3">
-          <h2 className="text-sm font-semibold text-foreground">
-            {isEditing ? "Edit Task" : "Add Task"}
-          </h2>
-          <Button variant="ghost" size="icon-sm" onClick={onClose}>
-            <X className="size-4" />
-          </Button>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4 transition-all duration-300">
+      <div className="w-full max-w-[500px] rounded-[24px] border border-white/[0.08] bg-black shadow-2xl overflow-hidden relative">
+        {/* Close button */}
+        <button 
+          onClick={onClose}
+          className="absolute top-5 right-5 p-2 rounded-full hover:bg-white/5 text-gray-500 hover:text-gray-300 transition-colors z-10"
+        >
+          <X className="size-5" />
+        </button>
+
+        {/* Hero Title Input */}
+        <div className="pt-10 px-8 pb-6 border-b border-white/[0.04]">
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="What do you want to achieve?"
+            className="w-full bg-transparent text-2xl font-bold text-white placeholder-gray-600 outline-none"
+            autoFocus
+          />
         </div>
 
-        {/* Body */}
-        <div className="space-y-4 p-4">
-          {/* Date & Type */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="mb-1 block text-xs font-medium text-muted-foreground">Date</label>
+        {/* Property Grid */}
+        <div className="px-8 py-6 space-y-6">
+          <div className="grid grid-cols-2 gap-x-8 gap-y-6">
+            
+            {/* Date */}
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2 text-gray-400">
+                <Calendar className="size-4" />
+                <span className="text-xs font-medium uppercase tracking-wider">Date</span>
+              </div>
               <input
                 type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                className="w-full rounded-lg border border-input bg-background px-3 py-1.5 text-sm text-foreground outline-none focus:border-ring focus:ring-2 focus:ring-ring/30"
+                className="w-full bg-white/[0.03] hover:bg-white/[0.06] border border-transparent hover:border-white/[0.05] focus:border-[#3b7ede] focus:bg-white/[0.02] rounded-xl px-3 py-2.5 text-sm text-gray-200 outline-none transition-all cursor-pointer"
               />
             </div>
-            <div>
-              <label className="mb-1 block text-xs font-medium text-muted-foreground">Type</label>
+
+            {/* Type */}
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2 text-gray-400">
+                <Tag className="size-4" />
+                <span className="text-xs font-medium uppercase tracking-wider">Type</span>
+              </div>
               <select
                 value={type}
                 onChange={(e) => setType(e.target.value as Task["type"])}
-                className="w-full rounded-lg border border-input bg-background px-3 py-1.5 text-sm text-foreground outline-none focus:border-ring focus:ring-2 focus:ring-ring/30"
+                className="w-full bg-white/[0.03] hover:bg-white/[0.06] border border-transparent hover:border-white/[0.05] focus:border-[#3b7ede] focus:bg-white/[0.02] rounded-xl px-3 py-2.5 text-sm text-gray-200 outline-none transition-all cursor-pointer appearance-none"
               >
-                {TASK_TYPES.map((t) => (
-                  <option key={t.value} value={t.value}>
-                    {t.label}
-                  </option>
-                ))}
+                {TASK_TYPES.map(t => <option key={t.value} value={t.value} className="bg-black">{t.label}</option>)}
               </select>
             </div>
-          </div>
 
-          {/* Time Selection */}
-          <div>
-            <label className="mb-1 flex items-center justify-between text-xs font-medium text-muted-foreground">
-              <span>Time</span>
-              <span className="flex items-center gap-1 text-[10px] text-primary">
-                <Clock className="size-3" />
-                {computedHours.toFixed(2)}h duration
-              </span>
-            </label>
-            <div className="flex items-center gap-2">
-              <input
-                type="time"
-                value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
-                className="flex-1 rounded-lg border border-input bg-background px-3 py-1.5 text-sm text-foreground outline-none focus:border-ring focus:ring-2 focus:ring-ring/30"
-              />
-              <span className="text-muted-foreground">to</span>
-              <input
-                type="time"
-                value={endTime}
-                onChange={(e) => setEndTime(e.target.value)}
-                className="flex-1 rounded-lg border border-input bg-background px-3 py-1.5 text-sm text-foreground outline-none focus:border-ring focus:ring-2 focus:ring-ring/30"
-              />
+            {/* Time */}
+            <div className="col-span-2 flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-gray-400">
+                  <Clock className="size-4" />
+                  <span className="text-xs font-medium uppercase tracking-wider">Time</span>
+                </div>
+                <span className="text-xs font-medium text-[#3b7ede] bg-[#3b7ede]/10 px-2.5 py-0.5 rounded-full">
+                  {computedHours.toFixed(2)}h
+                </span>
+              </div>
+              <div className="flex items-center gap-3">
+                <input
+                  type="time"
+                  value={startTime}
+                  onChange={(e) => setStartTime(e.target.value)}
+                  className="flex-1 bg-white/[0.03] hover:bg-white/[0.06] border border-transparent hover:border-white/[0.05] focus:border-[#3b7ede] focus:bg-white/[0.02] rounded-xl px-3 py-2.5 text-sm text-gray-200 outline-none transition-all cursor-pointer"
+                />
+                <span className="text-gray-600 font-medium">—</span>
+                <input
+                  type="time"
+                  value={endTime}
+                  onChange={(e) => setEndTime(e.target.value)}
+                  className="flex-1 bg-white/[0.03] hover:bg-white/[0.06] border border-transparent hover:border-white/[0.05] focus:border-[#3b7ede] focus:bg-white/[0.02] rounded-xl px-3 py-2.5 text-sm text-gray-200 outline-none transition-all cursor-pointer"
+                />
+              </div>
             </div>
-          </div>
 
-          {/* Subject */}
-          <div>
-            <label className="mb-1 block text-xs font-medium text-muted-foreground">Subject</label>
-            <select
-              value={subjectId}
-              onChange={(e) => {
-                setSubjectId(e.target.value)
-                setTopicId("")
-              }}
-              className="w-full rounded-lg border border-input bg-background px-3 py-1.5 text-sm text-foreground outline-none focus:border-ring focus:ring-2 focus:ring-ring/30"
-            >
-              <option value="">Select subject...</option>
-              {syllabus.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.shortName}
-                </option>
-              ))}
-            </select>
-          </div>
+            {/* Subject */}
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2 text-gray-400">
+                <BookOpen className="size-4" />
+                <span className="text-xs font-medium uppercase tracking-wider">Subject</span>
+              </div>
+              <select
+                value={subjectId}
+                onChange={(e) => { setSubjectId(e.target.value); setTopicId("") }}
+                className="w-full bg-white/[0.03] hover:bg-white/[0.06] border border-transparent hover:border-white/[0.05] focus:border-[#3b7ede] focus:bg-white/[0.02] rounded-xl px-3 py-2.5 text-sm text-gray-200 outline-none transition-all cursor-pointer appearance-none"
+              >
+                <option value="" className="bg-black">None</option>
+                {syllabus.map(s => <option key={s.id} value={s.id} className="bg-black">{s.shortName}</option>)}
+              </select>
+            </div>
 
-          {/* Topic */}
-          {subjectId && (
-            <div>
-              <label className="mb-1 block text-xs font-medium text-muted-foreground">Topic</label>
+            {/* Topic */}
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2 text-gray-400">
+                <Hash className="size-4" />
+                <span className="text-xs font-medium uppercase tracking-wider">Topic</span>
+              </div>
               <select
                 value={topicId}
                 onChange={(e) => setTopicId(e.target.value)}
-                className="w-full rounded-lg border border-input bg-background px-3 py-1.5 text-sm text-foreground outline-none focus:border-ring focus:ring-2 focus:ring-ring/30"
+                disabled={!subjectId}
+                className="w-full bg-white/[0.03] hover:bg-white/[0.06] border border-transparent hover:border-white/[0.05] focus:border-[#3b7ede] focus:bg-white/[0.02] rounded-xl px-3 py-2.5 text-sm text-gray-200 outline-none transition-all cursor-pointer appearance-none disabled:opacity-50"
               >
-                <option value="">Select topic...</option>
-                {topics.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.name}
-                  </option>
-                ))}
+                <option value="" className="bg-black">None</option>
+                {topics.map(t => <option key={t.id} value={t.id} className="bg-black">{t.name}</option>)}
               </select>
             </div>
-          )}
 
-          {/* Title */}
-          <div>
-            <label className="mb-1 block text-xs font-medium text-muted-foreground">Title</label>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g., Study Binary Trees"
-              className="w-full rounded-lg border border-input bg-background px-3 py-1.5 text-sm text-foreground outline-none focus:border-ring focus:ring-2 focus:ring-ring/30"
-            />
-          </div>
-
-          {/* Priority */}
-          <div>
-            <label className="mb-1 block text-xs font-medium text-muted-foreground">Priority</label>
-            <div className="flex gap-1.5">
-              {PRIORITIES.map((p) => (
-                <button
-                  key={p.value}
-                  onClick={() => setPriority(p.value)}
-                  className={`flex-1 rounded-lg border px-2 py-1.5 text-xs font-medium transition-colors ${
-                    priority === p.value ? p.color : "border-border text-muted-foreground"
-                  }`}
-                >
-                  {p.label}
-                </button>
-              ))}
+            {/* Priority */}
+            <div className="col-span-2 flex flex-col gap-2 pt-2">
+              <div className="flex items-center gap-2 text-gray-400 mb-1">
+                <Flag className="size-4" />
+                <span className="text-xs font-medium uppercase tracking-wider">Priority</span>
+              </div>
+              <div className="flex gap-3">
+                {PRIORITIES.map((p) => {
+                  const isActive = priority === p.value
+                  return (
+                    <button
+                      key={p.value}
+                      onClick={() => setPriority(p.value)}
+                      className={`flex-1 rounded-xl border py-2.5 text-xs font-semibold transition-all ${
+                        isActive 
+                          ? p.color.split(" ").map(c => c.replace("/20", "/15").replace("/30", "/20")).join(" ") + " shadow-sm ring-1 ring-current/20" 
+                          : "border-transparent bg-white/[0.03] text-gray-400 hover:bg-white/[0.06] hover:text-gray-300"
+                      }`}
+                    >
+                      {p.label}
+                    </button>
+                  )
+                })}
+              </div>
             </div>
+
           </div>
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between border-t border-border px-4 py-3">
-          <div className="flex gap-2 items-center">
+        <div className="flex items-center justify-between px-8 py-5 border-t border-white/[0.04] bg-black/20">
+          <div className="flex items-center gap-4">
             {isEditing && onDelete && (
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="text-red-500 hover:text-red-600 hover:bg-red-500/10"
+              <button
                 onClick={() => setShowConfirmDelete(true)}
+                className="p-2 rounded-lg text-gray-500 hover:text-red-400 hover:bg-red-400/10 transition-colors"
+                title="Delete Task"
               >
-                Delete
-              </Button>
+                <Trash2 className="size-4.5" />
+              </button>
             )}
-            <Button
-              variant={appState.googleCalendarConnected ? "outline" : "default"}
-              size="sm"
-              className="gap-1.5"
+            <button
               onClick={appState.googleCalendarConnected ? handleDisconnectGoogle : handleConnectGoogle}
               disabled={isConnecting}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[11px] font-medium transition-colors border ${
+                appState.googleCalendarConnected 
+                  ? "bg-green-500/10 border-green-500/20 text-green-400 hover:bg-green-500/20"
+                  : "bg-white/[0.03] border-white/5 text-gray-400 hover:bg-white/[0.08]"
+              }`}
             >
-              {isConnecting ? (
-                <><RefreshCw className="size-3.5 animate-spin" /> Connecting...</>
-              ) : appState.googleCalendarConnected ? (
-                <><CheckCircle2 className="size-3.5" /> Calendar Connected</>
-              ) : (
-                <><GoogleCalendarIcon className="size-3.5" /> Sync with Google Calendar</>
-              )}
-            </Button>
+              {isConnecting ? <RefreshCw className="size-3 animate-spin" /> : appState.googleCalendarConnected ? <CheckCircle2 className="size-3" /> : <GoogleCalendarIcon className="size-3" />}
+              {appState.googleCalendarConnected ? "Calendar Synced" : "Sync Calendar"}
+            </button>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={onClose}>
-              Cancel
-            </Button>
-            <Button size="sm" onClick={handleSave} disabled={!title.trim() || !startTime || !endTime}>
-              {isEditing ? "Save Changes" : "Add Task"}
-            </Button>
-          </div>
+          
+          <button
+            onClick={handleSave}
+            disabled={!title.trim() || !startTime || !endTime}
+            className="px-6 py-2.5 rounded-xl bg-[#3b7ede] text-white text-sm font-semibold shadow-[0_0_15px_rgba(59,126,222,0.4)] hover:bg-[#3b7ede]/90 hover:shadow-[0_0_20px_rgba(59,126,222,0.6)] disabled:opacity-50 disabled:shadow-none transition-all"
+          >
+            {isEditing ? "Save Changes" : "Create Task"}
+          </button>
         </div>
       </div>
 
