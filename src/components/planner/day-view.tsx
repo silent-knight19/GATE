@@ -4,7 +4,7 @@ import type { DailyTaskGroup, Task } from "@/lib/store"
 import { format } from "date-fns"
 import { cn } from "@/lib/utils"
 import { syllabus } from "@/lib/data/syllabus"
-import { CheckCircle2, Circle, X, Pencil, Trash2, Plus } from "lucide-react"
+import { CheckCircle2, Circle, X, Pencil, Trash2, Plus, Check, RefreshCw, AlertCircle } from "lucide-react"
 import { useMemo } from "react"
 import { Button } from "@/components/ui/button"
 
@@ -15,6 +15,7 @@ interface DayViewProps {
   onAddTask: () => void
   onEditTask: (task: Task) => void
   onDeleteTask: (taskId: string) => void
+  onRetrySync?: (taskId: string) => void
   onClose: () => void
 }
 
@@ -23,7 +24,7 @@ function getSubjectMeta(subjectId: string) {
   return { name: sub?.shortName || subjectId, color: sub?.color || "#6b7280" }
 }
 
-export function DayView({ group, date, onToggleTask, onAddTask, onEditTask, onDeleteTask, onClose }: DayViewProps) {
+export function DayView({ group, date, onToggleTask, onAddTask, onEditTask, onDeleteTask, onRetrySync, onClose }: DayViewProps) {
   const dayDate = new Date(date + "T00:00:00")
   const dayName = format(dayDate, "EEEE, MMMM d")
 
@@ -137,6 +138,25 @@ export function DayView({ group, date, onToggleTask, onAddTask, onEditTask, onDe
                         {task.type}
                       </span>
                     </div>
+                  </div>
+
+                  {/* Sync status badge */}
+                  <div className="shrink-0 self-start mt-1 mr-1">
+                    {task.syncStatus === 'pending' && (
+                      <span title="Syncing..."><RefreshCw className="size-3 text-muted-foreground animate-spin" /></span>
+                    )}
+                    {task.syncStatus === 'synced' && (
+                      <span title="Synced to Google Calendar"><Check className="size-3 text-green-500" /></span>
+                    )}
+                    {task.syncStatus === 'error' && onRetrySync && (
+                      <button
+                        onClick={() => onRetrySync(task.id)}
+                        className="group relative"
+                        title={task.syncError || "Sync failed — click to retry"}
+                      >
+                        <AlertCircle className="size-3 text-red-500 hover:text-red-400 transition-colors" />
+                      </button>
+                    )}
                   </div>
 
                   {/* Hover Actions */}

@@ -43,6 +43,9 @@ export interface Task {
   timeSlot?: 'morning' | 'afternoon' | 'evening'
   startTime?: string
   endTime?: string
+  googleEventId?: string
+  syncStatus?: 'synced' | 'pending' | 'error'
+  syncError?: string
 }
 
 export interface DailyTaskGroup {
@@ -79,6 +82,7 @@ export interface AppState {
   theme: 'dark' | 'light'
   sidebarOpen: boolean
   onboardingComplete: boolean
+  googleCalendarConnected?: boolean
 }
 
 export interface SyncStatus {
@@ -136,6 +140,7 @@ interface AppStore {
   addCustomTask: (task: Omit<Task, 'id'>) => void
   updateTask: (groupDate: string, taskId: string, updates: Partial<Omit<Task, 'id'>>) => void
   removeTask: (groupDate: string, taskId: string) => void
+  retrySync: (groupDate: string, taskId: string) => void
   getTodayTasks: () => DailyTaskGroup | undefined
   getUpcomingTasks: () => DailyTaskGroup[]
   getWeekDates: (date?: Date) => string[]
@@ -569,7 +574,7 @@ export const useAppStore = create<AppStore>()(
             dailyTasks: state.dailyTasks.map(g => {
               if (g.date !== groupDate) return g
               const tasks = g.tasks.map(t =>
-                t.id === taskId ? { ...t, ...updates } : t
+                t.id === taskId ? { ...t, ...updates, syncStatus: 'pending' as const } : t
               )
               return {
                 ...g,
@@ -598,6 +603,21 @@ export const useAppStore = create<AppStore>()(
             }).filter(g => g.tasks.length > 0)
             return { dailyTasks: updated }
           }),
+
+        retrySync: (groupDate, taskId) =>
+          set(state => ({
+            dailyTasks: state.dailyTasks.map(g => {
+              if (g.date !== groupDate) return g
+              return {
+                ...g,
+                tasks: g.tasks.map(t =>
+                  t.id === taskId
+                    ? { ...t, syncStatus: 'pending' as const, syncError: undefined }
+                    : t
+                ),
+              }
+            })
+          })),
 
         completeTaskOnTimer: (topicId) =>
           set(state => {

@@ -1,12 +1,20 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo, useCallback } from "react"
 import { format } from "date-fns"
 import { syllabus } from "@/lib/data/syllabus"
 import type { Task } from "@/lib/store"
 import { Button } from "@/components/ui/button"
 import { ConfirmModal } from "@/components/ui/confirm-modal"
-import { X, Clock } from "lucide-react"
+import { X, Clock, RefreshCw, CheckCircle2 } from "lucide-react"
+import { useAppStore } from "@/lib/store"
+import {
+  connectGoogleCalendar,
+  disconnectGoogleCalendar,
+  initSyncSnapshot,
+  cancelScheduledSync
+} from "@/lib/google-calendar"
+import { GoogleCalendarIcon } from "@/components/planner/google-calendar-icon"
 
 interface AddTaskModalProps {
   open: boolean
@@ -74,6 +82,25 @@ export function AddTaskModal({
 
   // Confirm delete state
   const [showConfirmDelete, setShowConfirmDelete] = useState(false)
+  const [isConnecting, setIsConnecting] = useState(false)
+  const appState = useAppStore((state) => state.appState)
+
+  const handleConnectGoogle = useCallback(async () => {
+    setIsConnecting(true)
+    try {
+      const success = await connectGoogleCalendar()
+      if (success) {
+        initSyncSnapshot()
+      }
+    } finally {
+      setIsConnecting(false)
+    }
+  }, [])
+
+  const handleDisconnectGoogle = useCallback(async () => {
+    cancelScheduledSync()
+    await disconnectGoogleCalendar()
+  }, [])
 
   // Reset form when modal opens or editingTask changes
   useEffect(() => {
@@ -282,7 +309,7 @@ export function AddTaskModal({
 
         {/* Footer */}
         <div className="flex items-center justify-between border-t border-border px-4 py-3">
-          <div>
+          <div className="flex gap-2 items-center">
             {isEditing && onDelete && (
               <Button 
                 variant="ghost" 
@@ -293,6 +320,21 @@ export function AddTaskModal({
                 Delete
               </Button>
             )}
+            <Button
+              variant={appState.googleCalendarConnected ? "outline" : "default"}
+              size="sm"
+              className="gap-1.5"
+              onClick={appState.googleCalendarConnected ? handleDisconnectGoogle : handleConnectGoogle}
+              disabled={isConnecting}
+            >
+              {isConnecting ? (
+                <><RefreshCw className="size-3.5 animate-spin" /> Connecting...</>
+              ) : appState.googleCalendarConnected ? (
+                <><CheckCircle2 className="size-3.5" /> Calendar Connected</>
+              ) : (
+                <><GoogleCalendarIcon className="size-3.5" /> Sync with Google Calendar</>
+              )}
+            </Button>
           </div>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={onClose}>

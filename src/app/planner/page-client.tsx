@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState, useCallback, useEffect } from "react"
+import { useMemo, useState, useCallback, useEffect, useRef } from "react"
 import { useAppStore, type Task, type PlannerSettings } from "@/lib/store"
 import { syllabus } from "@/lib/data/syllabus"
 import { calculateVelocity } from "@/lib/calculators"
@@ -15,7 +15,14 @@ import { ConfirmModal } from "@/components/ui/confirm-modal"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Slider } from "@base-ui/react/slider"
-import { Settings, RefreshCw, CalendarDays, CalendarRange, Plus, AlertTriangle } from "lucide-react"
+import { Settings, RefreshCw, CalendarDays, CalendarRange, Plus, AlertTriangle, ExternalLink, CheckCircle2, XCircle } from "lucide-react"
+import {
+  connectGoogleCalendar,
+  disconnectGoogleCalendar,
+  initSyncSnapshot,
+  schedulCalendarSync,
+  cancelScheduledSync,
+} from "@/lib/google-calendar"
 import { format } from "date-fns"
 
 function getSubjectName(subjectId: string): string {
@@ -38,6 +45,8 @@ export default function PlannerPage() {
   const updateSettings = useAppStore((s) => s.updateSettings)
 
   const logs = useAppStore((s) => s.logs)
+  const retrySync = useAppStore((s) => s.retrySync)
+  const appState = useAppStore((s) => s.appState)
 
   const [showSettings, setShowSettings] = useState(false)
   const [viewMode, setViewMode] = useState<"week" | "month">("week")
@@ -166,10 +175,84 @@ export default function PlannerPage() {
     }
   }
 
+  // Google Calendar handlers
+  const [isConnecting, setIsConnecting] = useState(false)
+
+  const handleConnectGoogle = useCallback(async () => {
+    setIsConnecting(true)
+    try {
+      const success = await connectGoogleCalendar()
+      if (success) {
+        initSyncSnapshot()
+      }
+    } finally {
+      setIsConnecting(false)
+    }
+  }, [])
+
+  const handleDisconnectGoogle = useCallback(async () => {
+    cancelScheduledSync()
+    await disconnectGoogleCalendar()
+  }, [])
+
+  // Auto-sync: watch dailyTasks and trigger calendar sync after debounce
+  const prevTasksRef = useRef(dailyTasks)
+  useEffect(() => {
+    if (!appState.googleCalendarConnected) return
+
+    // On mount with calendar connected, initialize the snapshot
+    initSyncSnapshot()
+
+    return () => {
+      cancelScheduledSync()
+    }
+  }, [appState.googleCalendarConnected])
+
+  useEffect(() => {
+    if (!appState.googleCalendarConnected) return
+    if (prevTasksRef.current === dailyTasks) return
+    prevTasksRef.current = dailyTasks
+
+    // Schedule a sync after 5s debounce
+    schedulCalendarSync()
+  }, [dailyTasks, appState.googleCalendarConnected])
+
   const selectedDayGroup = useMemo(
     () => dailyTasks.find((g) => g.date === selectedDay),
     [dailyTasks, selectedDay]
   )
+
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!mounted) {
+    return (
+      <div className="mx-auto max-w-6xl space-y-5 p-4 md:p-6 pb-20 animate-pulse">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="space-y-2">
+            <div className="h-7 w-48 bg-muted rounded" />
+            <div className="h-4 w-80 bg-muted rounded" />
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="h-8 w-24 bg-muted rounded" />
+            <div className="h-8 w-8 bg-muted rounded" />
+          </div>
+        </div>
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_320px] mt-6">
+          <div className="space-y-5">
+            <div className="h-[250px] bg-muted rounded-lg" />
+            <div className="h-[400px] bg-muted rounded-lg" />
+          </div>
+          <div className="space-y-5">
+            <div className="h-[200px] bg-muted rounded-lg" />
+            <div className="h-[300px] bg-muted rounded-lg" />
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="mx-auto max-w-6xl space-y-5 p-4 md:p-6 pb-20">
@@ -186,89 +269,8 @@ export default function PlannerPage() {
             <Plus className="size-4 mr-1" />
             Add Task
           </Button>
-          <Button variant="outline" size="sm" onClick={() => setShowSettings(!showSettings)}>
-            <Settings className="size-4" />
-          </Button>
         </div>
       </div>
-
-      {/* Settings Panel */}
-      {showSettings && (
-        <Card className="border-primary/20 bg-primary/5">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">Planner Settings</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="space-y-3">
-              <label className="text-sm font-medium text-foreground flex justify-between">
-                <span>Daily Available Hours</span>
-                <span className="text-primary">{plannerSettings.availableHours} hours</span>
-              </label>
-              <div className="flex items-center gap-4">
-                <span className="text-xs text-muted-foreground">1</span>
-                <div className="flex-1">
-                  <Slider.Root
-                    value={plannerSettings.availableHours}
-                    onValueChange={(v) => handleSliderChange(v, "availableHours")}
-                    min={1}
-                    max={12}
-                    className="relative flex h-5 w-full touch-none items-center"
-                  >
-                    <Slider.Track className="relative h-1.5 w-full rounded-full bg-muted">
-                      <Slider.Indicator className="absolute h-full rounded-full bg-primary" />
-                    </Slider.Track>
-                    <Slider.Thumb className="block size-5 rounded-full border-2 border-primary bg-background shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50" />
-                  </Slider.Root>
-                </div>
-                <span className="text-xs text-muted-foreground">12</span>
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              <div className="flex justify-between items-end">
-                <label className="text-sm font-medium text-foreground">Subject Priorities</label>
-                <span className="text-[10px] text-muted-foreground">Click to toggle: Neutral → Weak → Strong</span>
-              </div>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
-                {subjectIds.map((id) => {
-                  const name = getSubjectName(id)
-                  const isStrong = plannerSettings.strongSubjects.includes(id)
-                  const isWeak = plannerSettings.weakSubjects.includes(id)
-                  
-                  return (
-                    <button
-                      key={id}
-                      onClick={() => cycleSubjectState(id)}
-                      className={`flex items-center justify-between rounded-md border px-2.5 py-2 text-xs transition-colors ${
-                        isStrong
-                          ? "border-green-500/30 bg-green-500/10 text-green-600 dark:text-green-400"
-                          : isWeak
-                            ? "border-red-500/30 bg-red-500/10 text-red-600 dark:text-red-400"
-                            : "border-border bg-background text-muted-foreground hover:bg-muted"
-                      }`}
-                    >
-                      <span className="truncate pr-2 font-medium">{name}</span>
-                      <span className="shrink-0 text-[10px] uppercase tracking-wider opacity-60">
-                        {isStrong ? "Strong" : isWeak ? "Weak" : "Neutral"}
-                      </span>
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
-
-            <div className="pt-4 mt-4 border-t border-primary/10 flex justify-end">
-              <Button 
-                variant="destructive" 
-                size="sm" 
-                onClick={() => setShowClearAllConfirm(true)}
-              >
-                Clear All Tasks
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Main Content Layout */}
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_320px]">
@@ -282,6 +284,7 @@ export default function PlannerPage() {
             onAddTask={() => handleAddTask(todayStr)}
             onEditTask={(task) => handleEditTask(todayStr, task)}
             onDeleteTask={(taskId) => handleDeleteTask(todayStr, taskId)}
+            onRetrySync={(taskId) => retrySync(todayStr, taskId)}
           />
 
           {/* Calendar */}
@@ -401,6 +404,7 @@ export default function PlannerPage() {
               onAddTask={() => handleAddTask(selectedDay)}
               onEditTask={(task) => handleEditTask(selectedDay, task)}
               onDeleteTask={(taskId) => handleDeleteTask(selectedDay, taskId)}
+              onRetrySync={(taskId) => retrySync(selectedDay, taskId)}
               onClose={() => setSelectedDay(null)}
             />
           </div>
