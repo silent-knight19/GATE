@@ -123,13 +123,13 @@ function CountdownCard() {
 
           <div className="flex gap-3">
             <div className="rounded-lg bg-muted px-3 py-1.5">
-              <span className="text-lg font-bold tabular-nums text-foreground">
+              <span suppressHydrationWarning className="text-lg font-bold tabular-nums text-foreground">
                 {timeLeft.hours}
               </span>
               <span className="ml-1 text-xs text-muted-foreground">hrs</span>
             </div>
             <div className="rounded-lg bg-muted px-3 py-1.5">
-              <span className="text-lg font-bold tabular-nums text-foreground">
+              <span suppressHydrationWarning className="text-lg font-bold tabular-nums text-foreground">
                 {timeLeft.minutes}
               </span>
               <span className="ml-1 text-xs text-muted-foreground">min</span>
@@ -157,7 +157,7 @@ function CountdownCard() {
       </div>
 
       <div className="mt-6 border-t pt-4">
-        <p className="text-xs italic text-muted-foreground leading-relaxed">
+        <p suppressHydrationWarning className="text-xs italic text-muted-foreground leading-relaxed">
           &ldquo;{quote}&rdquo;
         </p>
       </div>

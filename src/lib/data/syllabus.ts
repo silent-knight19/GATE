@@ -337,7 +337,7 @@ const SYLLABUS: Subject[] = [
     name: 'Computer Organization & Architecture',
     shortName: 'COA',
     weightage: 9.4,
-    color: '#f97316',
+    color: '#f43f5e',
     yearMarks: [
       { year: 2022, marks: 9, questions: 5 },
       { year: 2023, marks: 12, questions: 7 },
@@ -458,7 +458,7 @@ const SYLLABUS: Subject[] = [
     name: 'Programming & Data Structures',
     shortName: 'PDS',
     weightage: 9.8,
-    color: '#22c55e',
+    color: '#f97316',
     yearMarks: [
       { year: 2022, marks: 9, questions: 6 },
       { year: 2023, marks: 11, questions: 7 },
@@ -613,7 +613,7 @@ const SYLLABUS: Subject[] = [
     name: 'Algorithms',
     shortName: 'Algo.',
     weightage: 7.2,
-    color: '#14b8a6',
+    color: '#eab308',
     yearMarks: [
       { year: 2022, marks: 7, questions: 5 },
       { year: 2023, marks: 6, questions: 4 },
@@ -751,7 +751,7 @@ const SYLLABUS: Subject[] = [
     name: 'Theory of Computation',
     shortName: 'TOC',
     weightage: 8,
-    color: '#e11d48',
+    color: '#84cc16',
     yearMarks: [
       { year: 2022, marks: 7, questions: 5 },
       { year: 2023, marks: 9, questions: 6 },
@@ -855,7 +855,7 @@ const SYLLABUS: Subject[] = [
     name: 'Compiler Design',
     shortName: 'CD',
     weightage: 5.6,
-    color: '#d946ef',
+    color: '#22c55e',
     yearMarks: [
       { year: 2022, marks: 4, questions: 3 },
       { year: 2023, marks: 5, questions: 3 },
@@ -976,7 +976,7 @@ const SYLLABUS: Subject[] = [
     name: 'Operating Systems',
     shortName: 'OS',
     weightage: 8.6,
-    color: '#06b6d4',
+    color: '#14b8a6',
     yearMarks: [
       { year: 2022, marks: 9, questions: 6 },
       { year: 2023, marks: 7, questions: 5 },
@@ -1131,7 +1131,7 @@ const SYLLABUS: Subject[] = [
     name: 'Databases',
     shortName: 'DB',
     weightage: 7.2,
-    color: '#84cc16',
+    color: '#06b6d4',
     yearMarks: [
       { year: 2022, marks: 7, questions: 5 },
       { year: 2023, marks: 5, questions: 3 },
@@ -1252,7 +1252,7 @@ const SYLLABUS: Subject[] = [
     name: 'Computer Networks',
     shortName: 'CN',
     weightage: 9.6,
-    color: '#f43f5e',
+    color: '#3b82f6',
     yearMarks: [
       { year: 2022, marks: 11, questions: 7 },
       { year: 2023, marks: 8, questions: 5 },
