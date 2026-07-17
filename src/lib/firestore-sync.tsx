@@ -42,7 +42,6 @@ function buildPayload(state: ReturnType<typeof useAppStore.getState>): Record<st
 const DATA_KEYS = [
   'user', 'topicsProgress', 'logs', 'tests', 'dailyTasks',
   'weeklyTargets', 'plannerSettings', 'revisionHistory', 'appState',
-  'deletedGoogleEvents',
 ] as const
 
 function hasDataChanged(

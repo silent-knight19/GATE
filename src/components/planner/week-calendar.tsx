@@ -218,7 +218,6 @@ export function WeekCalendar({ groups, onToggleTask, onSelectDay, onAddTask, onE
                         )}
                         style={{
                           top: `${top}px`,
-                          height: `${height}px`,
                           // Small gap between adjacent blocks
                           marginTop: '1px',
                           height: `calc(${height}px - 2px)`
