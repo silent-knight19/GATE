@@ -47,7 +47,7 @@ export default function Page() {
             The College Predictor shows IITs via COAP and NITs/IIITs via CCMT with category-wise closing scores (General/OBC/EWS/SC/ST) and 2026 verified vs 2027 predicted trend, with Safe/Borderline/Reach bands. PSU Tracker lists ONGC, IOCL, NTPC, etc. score thresholds by category. All outputs show score bands and rank intervals to reflect normalization uncertainty — use as planning range, verify on official portals (gate2027.iitm.ac.in, ccmt.admissions.nic.in, coap).
           </p>
           <p className="mt-2 text-[11px]">
-            Method: Score = 350 + 550×(M - Mq)/(Mt - Mq) where Mq (General 30 for 2026, 28.5 for 2027) and Mt (85.2 for 2026, 84.5 for 2027) per IIT Roorkee statistical report. Rank via log-linear interpolation of verified anchors (85+→top10, 75→120, 60→2100). Category affects qualification threshold, not AIR curve. Sources linked in each tab.
+            Method: Score = 350 + 550×(M - Mq)/(Mt - Mq) where Mq (General 30 for 2026 per IIT Guwahati gate2026.iitg.ac.in/cut-off.html, 28.5 for 2027 projected) and Mt (79 for 2026 mean top 0.1% provisional — topper 92.57 &gt; Mt so &gt;1000 capped, hence 90→~990+, 85→967; 79 chosen for 72-78 tough / 78-82 easier regime, pending Statistical Report, 79 for 2027 projected). Rank via log-linear interpolation of verified 2026 anchors (92.57→1/1000, 85→7/967, 65→350/743, 59→750/676, 45→3500/518) per PW/careers360/zollege consensus for 211k appeared. Category affects qualification threshold, not AIR curve.
           </p>
         </div>
       </section>

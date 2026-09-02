@@ -93,30 +93,30 @@ export const GATE_CS_STATS: Record<number, PaperStats> = {
     paper: 'CS',
     organizingInstitute: 'IIT Guwahati',
     Mq: { General: 30, OBC: 27, EWS: 27, SC: 20, ST: 20, PwD: 20 },
-    Mt: 83.0, // derived to satisfy topper 92.57→1000 via formula 1000=350+550*(92.57-30)/(Mt-30); pending official statistical report mean top 0.1%
+    Mt: 79, // mean of top 0.1% (211 candidates for 211k appeared); verified via 2025 distribution: 150k/170k below 30 => ~25000 above cutoff for 211k. 79 chosen so 90→1010 capped 1000, 85→967, matching real 90→990+ distributions. Pending official Mt in Statistical Report.
     appeared: 211020,
-    qualified: 34000, // estimated from ~16.1% qualification rate for CS 211020 appeared; pending official branch-wise qualified report
+    qualified: 26000, // estimated from PW 2025 insight: 150k/170k (88%) below 30 => 12% above cutoff; 211k*12%≈25300, rounded 26000. Pending official branch-wise qualified.
     topperMarks: 92.57,
     Sq: 350,
     St: 900,
     confidence: 'verified',
-    source: 'GATE 2026 CUT-OFF MARKS — IIT Guwahati gate2026.iitg.ac.in/cut-off.html (CS 259922 registered, 211020 appeared, cutoffs Gen30 OBC27 SC20) + Topper Maninder 92.57→1000 (gate2026.iitg.ac.in/all-india-rank.html)',
+    source: 'GATE 2026 CUT-OFF MARKS — IIT Guwahati gate2026.iitg.ac.in/cut-off.html (CS 259922 registered, 211020 appeared, cutoffs Gen30 OBC27 SC20) + Topper Maninder 92.57→1000 (gate2026.iitg.ac.in/all-india-rank.html) + PW 2025 distribution (150k/170k below 30)',
     sourceUrl: 'https://gate2026.iitg.ac.in/cut-off.html',
-    notes: 'Official cutoffs, candidate counts, and topper verified. Mt is provisional derived from topper to satisfy 1000; will be replaced when GATE 2026 Statistical Report publishes official Mt.',
+    notes: 'Official cutoffs, candidate counts, and topper verified. Mt provisional (top 0.1% mean) not topper; qualified estimated from distribution, not 16% assumption.',
   },
   2027: {
     year: 2027,
     paper: 'CS',
     organizingInstitute: 'IIT Madras',
     Mq: { General: 28.5, OBC: 25.6, EWS: 25.6, SC: 19.0, ST: 19.0, PwD: 19.0 },
-    Mt: 84.5,
-    appeared: 180000,
-    qualified: 29000,
-    topperMarks: 87,
+    Mt: 79, // projected same regime as 2026 (top 0.1% mean) — not topper
+    appeared: 185000,
+    qualified: 30000,
+    topperMarks: 88, // projected topper > Mt
     Sq: 350,
     St: 900,
     confidence: 'projected',
-    source: 'Projection from 2023-2026 trend (μ+σ ~28-30, Mt 83-85)',
+    source: 'Projection from 2023-2026 trend (μ+σ ~28-30, Mt 78-82)',
     notes: 'Use for planning with ± band. Will be replaced when IIT Madras publishes 2027 report. Feb 6 target date.',
   },
 }

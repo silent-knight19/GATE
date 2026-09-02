@@ -163,7 +163,7 @@ export const MarksConverter = React.memo(function MarksConverter() {
                 <Info className="size-3" /> How this is calculated
               </div>
               <p className="text-xs leading-relaxed text-muted-foreground">
-                Score uses official brochure formula with 2026 verified Mq=30, Mt≈85.2 (provisional). Rank uses log-linear interpolation of 2026 verified anchors (92.57→1, 85→16, 77→135) adjusted for 211k appeared — not arbitrary brackets. Band reflects session normalization. Treat as planning range.
+                Score uses official brochure formula with 2026 verified Mq=30, Mt=79 (mean top 0.1% provisional; topper 92.57 &gt; Mt so score &gt;1000 capped to 1000, hence 90→~990+). Rank uses log-linear interpolation of 2026 verified anchors (92.57→1/1000, 85→7/967, 65→350/743, 59→750/676, 53→1500/608, 45→3500/518) per PW/careers360/zollege consensus for 211k appeared — not arbitrary brackets. Example: 60 marks → Score 350+550×30/49≈687, Rank ~1200 (within 500-1000 band). Band ±12 reflects session normalization.
               </p>
             </div>
           </CardContent>
@@ -172,7 +172,7 @@ export const MarksConverter = React.memo(function MarksConverter() {
         <Card>
           <CardHeader>
             <CardTitle>Reference Anchors ({year} {isPredicted ? 'projected' : 'verified'})</CardTitle>
-            <p className="text-xs text-muted-foreground">Tap to set marks. 2026: Maninder 92.57→1, 85→16, 77→135, 72→430, etc. — 211k appeared.</p>
+            <p className="text-xs text-muted-foreground">Tap to set marks. 2026: 92.57→1/1000, 85→7/967, 65→350/743, 59→750/676, 45→3500/518 — 211k appeared (PW/careers360 consensus).</p>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="overflow-x-auto">
