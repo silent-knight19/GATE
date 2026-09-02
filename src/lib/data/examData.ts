@@ -33,6 +33,14 @@ export const examInfo: ExamInfo = {
   scoreValidity: '3 years',
 }
 
+/**
+ * Subject weightages — verified against 2022–2026 audit (see verifiedPapers.ts).
+ * 2022/2023/2026-CS1: VERIFIED (2026-CS1 partial, sums to 85 per source table, 15 marks unclassified)
+ * 2024/2025: UNVERIFIED legacy estimates — retained for continuity, must not be treated as audited.
+ * CS1/CS2 kept separate in canonical dataset; this 5-year table uses CS1 for 2024-2026 for legacy compatibility.
+ * See src/lib/data/verifiedPapers.ts for 8-paper dataset and sources.
+ */
+
 export interface SubjectWeightage {
   subjectId: string
   subjectName: string
@@ -51,123 +59,137 @@ export const subjectWeightages: SubjectWeightage[] = [
       { year: 2023, marks: 15 },
       { year: 2024, marks: 15 },
       { year: 2025, marks: 15 },
-      { year: 2026, marks: 15 },
+      { year: 2026, marks: 15 }
     ],
     avgMarks: 15,
     trend: 'stable',
-    volatility: 'low',
+    volatility: 'low'
   },
   {
     subjectId: 'em',
     subjectName: 'Engineering Mathematics',
     yearMarks: [
-      { year: 2022, marks: 7 },
-      { year: 2023, marks: 4 },
+      { year: 2022, marks: 6 },
+      { year: 2023, marks: 7 },
       { year: 2024, marks: 8 },
       { year: 2025, marks: 8 },
-      { year: 2026, marks: 6 },
+      { year: 2026, marks: 4 }
     ],
     avgMarks: 6.6,
-    trend: 'stable',
+    trend: 'down',
+    volatility: 'medium'
+  },
+  {
+    subjectId: 'dm',
+    subjectName: 'Discrete Mathematics',
+    yearMarks: [
+      { year: 2022, marks: 9 },
+      { year: 2023, marks: 9 },
+      { year: 2024, marks: 5 },
+      { year: 2025, marks: 5 },
+      { year: 2026, marks: 5 }
+    ],
+    avgMarks: 6.6,
+    trend: 'down',
     volatility: 'medium',
   },
   {
     subjectId: 'dl',
     subjectName: 'Digital Logic',
     yearMarks: [
-      { year: 2022, marks: 3 },
-      { year: 2023, marks: 6 },
+      { year: 2022, marks: 5 },
+      { year: 2023, marks: 8 },
       { year: 2024, marks: 5 },
       { year: 2025, marks: 5 },
-      { year: 2026, marks: 5 },
+      { year: 2026, marks: 5 }
     ],
-    avgMarks: 4.8,
-    trend: 'up',
-    volatility: 'medium',
+    avgMarks: 5.6,
+    trend: 'stable',
+    volatility: 'medium'
   },
   {
     subjectId: 'coa',
     subjectName: 'Computer Organization & Architecture',
     yearMarks: [
-      { year: 2022, marks: 9 },
-      { year: 2023, marks: 12 },
+      { year: 2022, marks: 8 },
+      { year: 2023, marks: 7 },
       { year: 2024, marks: 9 },
       { year: 2025, marks: 9 },
-      { year: 2026, marks: 8 },
+      { year: 2026, marks: 8 }
     ],
-    avgMarks: 9.4,
-    trend: 'down',
-    volatility: 'medium',
+    avgMarks: 8.2,
+    trend: 'stable',
+    volatility: 'low'
   },
   {
     subjectId: 'pds',
     subjectName: 'Programming & Data Structures',
     yearMarks: [
       { year: 2022, marks: 9 },
-      { year: 2023, marks: 11 },
+      { year: 2023, marks: 10 },
       { year: 2024, marks: 8 },
       { year: 2025, marks: 10 },
-      { year: 2026, marks: 11 },
+      { year: 2026, marks: 9 }
     ],
-    avgMarks: 9.8,
+    avgMarks: 9.2,
     trend: 'stable',
-    volatility: 'medium',
+    volatility: 'low'
   },
   {
     subjectId: 'algo',
     subjectName: 'Algorithms',
     yearMarks: [
-      { year: 2022, marks: 7 },
+      { year: 2022, marks: 9 },
       { year: 2023, marks: 6 },
       { year: 2024, marks: 8 },
       { year: 2025, marks: 8 },
-      { year: 2026, marks: 7 },
+      { year: 2026, marks: 8 }
     ],
-    avgMarks: 7.2,
+    avgMarks: 7.8,
     trend: 'stable',
-    volatility: 'low',
+    volatility: 'medium'
   },
   {
     subjectId: 'toc',
     subjectName: 'Theory of Computation',
     yearMarks: [
-      { year: 2022, marks: 7 },
+      { year: 2022, marks: 10 },
       { year: 2023, marks: 9 },
       { year: 2024, marks: 7 },
       { year: 2025, marks: 9 },
-      { year: 2026, marks: 8 },
+      { year: 2026, marks: 7 }
     ],
-    avgMarks: 8,
-    trend: 'stable',
-    volatility: 'medium',
+    avgMarks: 8.4,
+    trend: 'down',
+    volatility: 'medium'
   },
   {
     subjectId: 'cd',
     subjectName: 'Compiler Design',
     yearMarks: [
-      { year: 2022, marks: 4 },
-      { year: 2023, marks: 5 },
+      { year: 2022, marks: 5 },
+      { year: 2023, marks: 7 },
       { year: 2024, marks: 8 },
       { year: 2025, marks: 5 },
-      { year: 2026, marks: 6 },
+      { year: 2026, marks: 5 }
     ],
-    avgMarks: 5.6,
+    avgMarks: 6.0,
     trend: 'stable',
-    volatility: 'medium',
+    volatility: 'medium'
   },
   {
     subjectId: 'os',
     subjectName: 'Operating Systems',
     yearMarks: [
-      { year: 2022, marks: 9 },
-      { year: 2023, marks: 7 },
+      { year: 2022, marks: 6 },
+      { year: 2023, marks: 9 },
       { year: 2024, marks: 10 },
       { year: 2025, marks: 8 },
-      { year: 2026, marks: 9 },
+      { year: 2026, marks: 6 }
     ],
-    avgMarks: 8.6,
+    avgMarks: 7.8,
     trend: 'stable',
-    volatility: 'medium',
+    volatility: 'medium'
   },
   {
     subjectId: 'db',
@@ -177,11 +199,11 @@ export const subjectWeightages: SubjectWeightage[] = [
       { year: 2023, marks: 5 },
       { year: 2024, marks: 8 },
       { year: 2025, marks: 8 },
-      { year: 2026, marks: 8 },
+      { year: 2026, marks: 7 }
     ],
-    avgMarks: 7.2,
-    trend: 'up',
-    volatility: 'medium',
+    avgMarks: 7.0,
+    trend: 'stable',
+    volatility: 'medium'
   },
   {
     subjectId: 'cn',
@@ -191,10 +213,10 @@ export const subjectWeightages: SubjectWeightage[] = [
       { year: 2023, marks: 8 },
       { year: 2024, marks: 9 },
       { year: 2025, marks: 10 },
-      { year: 2026, marks: 10 },
+      { year: 2026, marks: 6 }
     ],
-    avgMarks: 9.6,
-    trend: 'stable',
-    volatility: 'medium',
+    avgMarks: 8.8,
+    trend: 'down',
+    volatility: 'high'
   },
 ]

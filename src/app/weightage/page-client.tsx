@@ -14,8 +14,9 @@ import {
 } from 'recharts'
 import { syllabus } from '@/lib/data/syllabus'
 import { subjectWeightages } from '@/lib/data/examData'
+import { verifiedPapers } from '@/lib/data/verifiedPapers'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
-import { ArrowUp, ArrowDown, Minus } from 'lucide-react'
+import { ArrowUp, ArrowDown, Minus, AlertTriangle, ShieldCheck, ShieldAlert } from 'lucide-react'
 
 type SortKey = 'subject' | 2022 | 2023 | 2024 | 2025 | 2026 | 'avg' | 'trend'
 type SortDir = 'asc' | 'desc'
@@ -169,27 +170,71 @@ export default function WeightagePage() {
     return worst
   }, [rows])
 
+  const verifiedIds = new Set(['2022-CS', '2023-CS', '2026-CS1'])
+  const paperStatus = (id: string) => verifiedPapers.find(p => p.id === id)?.status ?? 'unverified'
+
   return (
     <div className="min-h-screen bg-background p-4 md:p-6 space-y-6">
       <div>
         <h1 className="text-2xl font-bold">Weightage Analysis</h1>
-        <p className="text-sm text-muted-foreground">5-year marks distribution (2022–2026)</p>
+        <p className="text-sm text-muted-foreground">5-year marks distribution (2022–2026) — verified vs legacy estimates</p>
+      </div>
+
+      <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4">
+        <div className="flex gap-3">
+          <AlertTriangle className="size-4 shrink-0 text-amber-500 mt-0.5" />
+          <div className="space-y-2 text-xs leading-relaxed">
+            <p className="font-semibold text-amber-600 dark:text-amber-400">Data-quality standard</p>
+            <p className="text-muted-foreground">
+              GATE does not publish official subject tags. Subject marks require auditing every question&apos;s 1/2-mark value and summing per classification.
+              A table is only trustworthy when rows reconcile to 100 marks per paper.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-medium text-emerald-600 dark:text-emerald-400">
+                <ShieldCheck className="size-3" /> 2022 CS — verified (100)
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-medium text-emerald-600 dark:text-emerald-400">
+                <ShieldCheck className="size-3" /> 2023 CS — verified (100)
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/20 bg-amber-500/10 px-2.5 py-1 text-[10px] font-medium text-amber-600 dark:text-amber-400">
+                <ShieldAlert className="size-3" /> 2024 CS1/CS2 — unverified (legacy)
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/20 bg-amber-500/10 px-2.5 py-1 text-[10px] font-medium text-amber-600 dark:text-amber-400">
+                <ShieldAlert className="size-3" /> 2025 CS1/CS2 — unverified (legacy)
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-sky-500/20 bg-sky-500/10 px-2.5 py-1 text-[10px] font-medium text-sky-600 dark:text-sky-400">
+                <ShieldCheck className="size-3" /> 2026 CS1 — verified_partial (85; 15 unclassified)
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-gray-500/20 bg-gray-500/10 px-2.5 py-1 text-[10px] font-medium text-muted-foreground">
+                2026 CS2 — question counts only
+              </span>
+            </div>
+            <p className="text-muted-foreground">
+              This 5-year table uses <b>2026 CS1</b> for the 2026 column. 2024/2025 are retained as published estimates (they reconcile to 100 but are not audited per the verified standard).
+              For the full 8-paper audit see <code className="rounded bg-muted px-1 py-0.5 font-mono text-[10px]">src/lib/data/verifiedPapers.ts</code>.
+              2026 CS1 per-subject marks sum to 85 incl. GA per source table; 9 questions / 15 marks are unclassified in that source (see file header).
+            </p>
+          </div>
+        </div>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Subject Weightage Table</CardTitle>
+          <div className="flex items-center justify-between gap-2">
+            <CardTitle>Subject Weightage Table</CardTitle>
+            <span className="text-[10px] text-muted-foreground hidden sm:inline">2026 = CS1 only · 2024/2025 legacy (unverified)</span>
+          </div>
         </CardHeader>
         <CardContent className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b">
                 <SortHeader k="subject" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort}>Subject</SortHeader>
-                <SortHeader k={2022} sortKey={sortKey} sortDir={sortDir} onSort={toggleSort}>2022</SortHeader>
-                <SortHeader k={2023} sortKey={sortKey} sortDir={sortDir} onSort={toggleSort}>2023</SortHeader>
-                <SortHeader k={2024} sortKey={sortKey} sortDir={sortDir} onSort={toggleSort}>2024</SortHeader>
-                <SortHeader k={2025} sortKey={sortKey} sortDir={sortDir} onSort={toggleSort}>2025</SortHeader>
-                <SortHeader k={2026} sortKey={sortKey} sortDir={sortDir} onSort={toggleSort}>2026</SortHeader>
+                <SortHeader k={2022} sortKey={sortKey} sortDir={sortDir} onSort={toggleSort}><span className="inline-flex items-center gap-1">2022<span className="text-[8px] text-emerald-500">●</span></span></SortHeader>
+                <SortHeader k={2023} sortKey={sortKey} sortDir={sortDir} onSort={toggleSort}><span className="inline-flex items-center gap-1">2023<span className="text-[8px] text-emerald-500">●</span></span></SortHeader>
+                <SortHeader k={2024} sortKey={sortKey} sortDir={sortDir} onSort={toggleSort}><span className="inline-flex items-center gap-1">2024<span className="text-[8px] text-amber-500">◐</span></span></SortHeader>
+                <SortHeader k={2025} sortKey={sortKey} sortDir={sortDir} onSort={toggleSort}><span className="inline-flex items-center gap-1">2025<span className="text-[8px] text-amber-500">◐</span></span></SortHeader>
+                <SortHeader k={2026} sortKey={sortKey} sortDir={sortDir} onSort={toggleSort}><span className="inline-flex items-center gap-1">2026<span className="text-[8px] text-sky-500">◑</span></span></SortHeader>
                 <SortHeader k="avg" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort}>Avg</SortHeader>
                 <SortHeader k="trend" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort}>Trend</SortHeader>
               </tr>

@@ -1,16 +1,18 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { MarksConverter } from '@/components/predictor/marks-converter'
 import { CollegePredictor } from '@/components/predictor/college-predictor'
 import { TargetTracker } from '@/components/predictor/target-tracker'
+import { PsuPredictor } from '@/components/predictor/psu-predictor'
 
 const TABS = [
   { value: 'converter', label: 'Marks → Score → Rank' },
   { value: 'college', label: 'College Predictor' },
   { value: 'target', label: 'Target Tracker' },
+  { value: 'psu', label: 'PSU Tracker' },
 ] as const
 
 export default function PredictorPage() {
@@ -57,6 +59,7 @@ export default function PredictorPage() {
       {tab === 'converter' && <MarksConverter />}
       {tab === 'college' && <CollegePredictor />}
       {tab === 'target' && <TargetTracker />}
+      {tab === 'psu' && <PsuPredictor />}
     </div>
   )
 }

@@ -2,14 +2,17 @@ import type { Metadata } from "next"
 import PageClient from "./page-client"
 
 export const metadata: Metadata = {
-  title: "Rank & College Predictor",
+  title: "Rank, College & PSU Predictor — GATE CSE 2027",
   description:
-    "Calculate your GATE score, predict your All India Rank (AIR), and find matching IITs, NITs, and IIITs based on historical GATE cutoff trends.",
+    "Calculate your GATE score with the official 350+550×(M-Mq)/(Mt-Mq) formula, predict AIR with verified 2026 vs 2027 predicted predicted bands, find IIT/NIT/IIIT cutoffs by category (COAP/CCMT) and PSU eligibility — dual-tab reliable.",
   keywords: [
     "GATE rank predictor",
+    "GATE score calculator official formula",
     "college predictor",
+    "PSU predictor GATE CSE",
     "IIT NIT IIIT cutoff",
-    "GATE score calculator",
+    "COAP CCMT cutoff",
+    "GATE 2026 vs 2027",
     "target rank tracker",
   ],
   alternates: {
@@ -41,9 +44,10 @@ export default function Page() {
             2022&ndash;2026.
           </p>
           <p>
-            The College Predictor tab shows which IITs, NITs, and IIITs you may be eligible for based on
-            historical GATE CSE cutoff trends. The Target Tracker lets you set a goal rank and see the marks
-            you need to achieve it. All predictions are estimates and should be used for planning purposes only.
+            The College Predictor shows IITs via COAP and NITs/IIITs via CCMT with category-wise closing scores (General/OBC/EWS/SC/ST) and 2026 verified vs 2027 predicted trend, with Safe/Borderline/Reach bands. PSU Tracker lists ONGC, IOCL, NTPC, etc. score thresholds by category. All outputs show score bands and rank intervals to reflect normalization uncertainty — use as planning range, verify on official portals (gate2027.iitm.ac.in, ccmt.admissions.nic.in, coap).
+          </p>
+          <p className="mt-2 text-[11px]">
+            Method: Score = 350 + 550×(M - Mq)/(Mt - Mq) where Mq (General 30 for 2026, 28.5 for 2027) and Mt (85.2 for 2026, 84.5 for 2027) per IIT Roorkee statistical report. Rank via log-linear interpolation of verified anchors (85+→top10, 75→120, 60→2100). Category affects qualification threshold, not AIR curve. Sources linked in each tab.
           </p>
         </div>
       </section>

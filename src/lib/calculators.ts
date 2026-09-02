@@ -1,11 +1,45 @@
-import { gateCs2025Stats, rankMapping, categoryQualifyingRatios } from '@/lib/data/rankMapping'
+import { gateCs2025Stats } from '@/lib/data/rankMapping'
+import { getMqForCategory, getStatForYear } from '@/lib/data/gateStats'
+import { getAnchorsForYear, interpolateRank, interpolateMarksForRank, getRankBand, getScoreBand } from '@/lib/data/rankAnchors'
+import { COLLEGE_CUTOFFS as NEW_CUTOFFS } from '@/lib/data/collegeCutoffs'
 import type { Subject } from '@/lib/data/syllabus'
+
+// Re-export for backward compat — deprecated, use gateStats
+export { gateCs2025Stats }
 
 export interface RankPrediction {
   minRank: number
   maxRank: number
-  expectedRank: number
+  expectedRank: number | null
   score: number
+  // new fields — optional for backward compat
+  qualified?: boolean
+  scoreBand?: { low: number; high: number }
+  rankRange?: { low: number; high: number } | null
+  percentile?: number | null
+  confidence?: 'high' | 'medium' | 'low'
+  year?: number
+  Mt?: number
+  Mq?: number
+  MqCategory?: number
+  method?: string
+}
+
+export interface DetailedPrediction extends RankPrediction {
+  score: number
+  scoreBand: { low: number; high: number }
+  qualified: boolean
+  expectedRank: number | null
+  rankRange: { low: number; high: number } | null
+  percentile: number | null
+  confidence: 'high' | 'medium' | 'low'
+  year: number
+  Mt: number
+  Mq: number
+  MqCategory: number
+  method: string
+  minRank: number
+  maxRank: number
 }
 
 export interface VelocityResult {
@@ -62,56 +96,178 @@ function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max)
 }
 
-export function marksToScore(marks: number): number {
-  const clamped = Math.min(100, Math.max(0, marks))
-  let bracket = rankMapping[rankMapping.length - 1]
-  for (const entry of rankMapping) {
-    if (clamped >= entry.minMarks && clamped <= entry.maxMarks) {
-      bracket = entry
-      break
-    }
-  }
-  const ratio = (clamped - bracket.minMarks) / (Math.max(bracket.maxMarks - bracket.minMarks, 1))
-  const score = bracket.minScore + ratio * (bracket.maxScore - bracket.minScore)
-  return Math.round(clamp(score, 0, 1000) * 100) / 100
+// ── Official GATE Score Formula ─────────────────────────────────────────────
+// Score = 350 + 550 * (M - MqGen) / (Mt - MqGen)
+// MqGen = General qualifying marks for that year, Mt = mean top 0.1% , Sq=350 St=900
+// Per GATE 2027 Information Brochure v1.1: Score = Sq + (St-Sq)*(M-Mq)/(Mt-Mq)
+// Category does NOT change formula denominator; it changes qualification threshold MqCategory
+export function marksToScoreDetailed(marks: number, year: number = 2026): { score: number; band: { low: number; high: number }; Mq: number; Mt: number; method: string } {
+  const clamped = clamp(marks, 0, 100)
+  const stat = getStatForYear(year)
+  const Mq = stat.Mq.General
+  const Mt = stat.Mt
+  const denom = Math.max(1, Mt - Mq)
+  const rawScore = 350 + 550 * (clamped - Mq) / denom
+  const score = Math.round(clamp(rawScore, 0, 1000) * 100) / 100
+  const band = getScoreBand(score, year)
+  const method = `Score = 350 + 550×(M - ${Mq})/(Mt ${Mt} - ${Mq})`
+  return { score, band, Mq, Mt, method }
 }
 
-export function marksToRank(marks: number, category: string = 'General'): RankPrediction {
-  const clamped = Math.min(100, Math.max(0, marks))
+// Backward compat: marksToScore(marks) uses 2026 verified
+export function marksToScore(marks: number): number {
+  return marksToScoreDetailed(marks, 2026).score
+}
 
-  const ratio = categoryQualifyingRatios[category as keyof typeof categoryQualifyingRatios] ?? 1
-  const adjustedMarks = clamped * ratio
+export function marksToScoreForYear(marks: number, year: number): number {
+  return marksToScoreDetailed(marks, year).score
+}
 
-  let bracket = rankMapping[rankMapping.length - 1]
-  for (const entry of rankMapping) {
-    if (adjustedMarks >= entry.minMarks && adjustedMarks <= entry.maxMarks) {
-      bracket = entry
-      break
-    }
+// ── Marks → Rank (reliable) ─────────────────────────────────────────────────
+// Uses official score + log-linear rank anchors. Category affects qualification,
+// NOT the marks→rank curve directly (AIR is category-agnostic). We show qualified flag.
+export function marksToRankDetailed(marks: number, category: string = 'General', year: number = 2026): DetailedPrediction {
+  const clamped = clamp(marks, 0, 100)
+  const stat = getStatForYear(year)
+  const MqGen = stat.Mq.General
+  const MqCategory = getMqForCategory(year, category)
+  const Mt = stat.Mt
+  const qualified = clamped >= MqCategory
+
+  const { score, band: scoreBand } = marksToScoreDetailed(clamped, year)
+
+  const anchors = getAnchorsForYear(year)
+  let expectedRank: number | null = null
+  let rankRange: { low: number; high: number } | null = null
+  let confidence: 'high' | 'medium' | 'low' = 'high'
+  let minRank = 1
+  let maxRank = stat.appeared
+
+  if (qualified) {
+    const interp = interpolateRank(clamped, anchors)
+    expectedRank = interp.rank
+    const band = getRankBand(interp.rank, year)
+    rankRange = { low: band.low, high: band.high }
+    confidence = band.confidence
+    minRank = band.low
+    maxRank = band.high
+  } else {
+    // Not qualified: no AIR (GATE only ranks qualified)
+    expectedRank = null
+    rankRange = null
+    confidence = 'low'
+    minRank = stat.qualified + 1
+    maxRank = stat.appeared
   }
 
-  const ratio2 = (adjustedMarks - bracket.minMarks) / (Math.max(bracket.maxMarks - bracket.minMarks, 1))
-  const baseRank = bracket.maxRank - ratio2 * (bracket.maxRank - bracket.minRank)
-  const score = marksToScore(clamped)
+  const percentile = expectedRank ? Math.max(0, Math.min(99.99, (1 - expectedRank / stat.appeared) * 100)) : null
 
   return {
-    minRank: Math.max(1, Math.round(bracket.minRank)),
-    maxRank: Math.max(1, Math.round(bracket.maxRank)),
-    expectedRank: Math.max(1, Math.round(baseRank)),
     score,
+    scoreBand: scoreBand,
+    qualified,
+    expectedRank,
+    rankRange,
+    percentile: percentile !== null ? Math.round(percentile * 100) / 100 : null,
+    confidence,
+    year,
+    Mt,
+    Mq: MqGen,
+    MqCategory,
+    method: `Official formula + log-linear anchors (${year} ${stat.confidence})`,
+    minRank,
+    maxRank,
   }
 }
 
-export function rankToMarks(targetRank: number, _category: string = 'General'): { marks: number; score: number } {
-  for (const entry of rankMapping) {
-    if (targetRank >= entry.minRank && targetRank <= entry.maxRank) {
-      const rankRatio = (targetRank - entry.minRank) / (Math.max(entry.maxRank - entry.minRank, 1))
-      const marks = entry.maxMarks - rankRatio * (entry.maxMarks - entry.minMarks)
-      return { marks: Math.round(marks * 10) / 10, score: marksToScore(marks) }
-    }
+// Backward compat wrapper: returns old shape but with improved values
+export function marksToRank(marks: number, category: string = 'General'): RankPrediction {
+  const d = marksToRankDetailed(marks, category, 2026)
+  // Old callers expect non-null expectedRank; if not qualified fallback to maxRank
+  const expected = d.expectedRank ?? d.maxRank
+  const range = d.rankRange ?? { low: d.minRank, high: d.maxRank }
+  return {
+    minRank: range.low,
+    maxRank: range.high,
+    expectedRank: expected,
+    score: d.score,
+    qualified: d.qualified,
+    scoreBand: d.scoreBand,
+    rankRange: d.rankRange,
+    percentile: d.percentile,
+    confidence: d.confidence,
+    year: d.year,
+    Mt: d.Mt,
+    Mq: d.Mq,
+    MqCategory: d.MqCategory,
+    method: d.method,
   }
-  return { marks: 0, score: 0 }
 }
+
+export function marksToRankForYear(marks: number, category: string = 'General', year: number = 2026): DetailedPrediction {
+  return marksToRankDetailed(marks, category, year)
+}
+
+// ── Rank → Marks (inverse) ──────────────────────────────────────────────────
+export function rankToMarksDetailed(targetRank: number, category: string = 'General', year: number = 2026): { marks: number; score: number; band: { low: number; high: number }; scoreBand: { low: number; high: number }; method: string } {
+  const anchors = getAnchorsForYear(year)
+  const stat = getStatForYear(year)
+  const { marks, score: anchorScore } = interpolateMarksForRank(targetRank, anchors)
+  // Recompute score via official formula for consistency (anchorScore vs formula may differ slightly)
+  const { score } = marksToScoreDetailed(marks, year)
+  const marksBand = targetRank <= 100 ? { low: Math.max(0, Math.round((marks - 2) * 10) / 10), high: Math.min(100, Math.round((marks + 2) * 10) / 10) } : { low: Math.max(0, Math.round((marks - 3) * 10) / 10), high: Math.min(100, Math.round((marks + 3) * 10) / 10) }
+  const scoreBand = getScoreBand(score, year)
+  // Category does not change marks needed for a given AIR; qualification threshold separate
+  void category
+  void stat
+  void anchorScore
+  return { marks, score, band: marksBand, scoreBand, method: `Inverse log-linear anchors (${year})` }
+}
+
+// Backward compat
+export function rankToMarks(targetRank: number, _category: string = 'General'): { marks: number; score: number } {
+  const d = rankToMarksDetailed(targetRank, _category, 2026)
+  return { marks: d.marks, score: d.score }
+}
+
+export function rankToMarksForYear(targetRank: number, category: string = 'General', year: number = 2026): ReturnType<typeof rankToMarksDetailed> {
+  return rankToMarksDetailed(targetRank, category, year)
+}
+
+// ── College helpers ─────────────────────────────────────────────────────────
+// Backward compat COLLEGES (simple list) — generated from NEW_CUTOFFS 2025 General
+export interface College {
+  id: string
+  name: string
+  tier: 'IIT' | 'NIT' | 'IIIT' | 'GFTI'
+  specializations: string[]
+  city: string
+  state: string
+  cutoffScore: number
+  cutoffSource: string
+}
+
+export const COLLEGES: College[] = (() => {
+  const seen = new Set<string>()
+  const list: College[] = []
+  for (const c of NEW_CUTOFFS) {
+    if (c.year !== 2025 || c.category !== 'General') continue
+    if (seen.has(c.name)) continue
+    seen.add(c.name)
+    list.push({
+      id: c.id.split('-').slice(0, 2).join('-') || c.id, // base id
+      name: c.name,
+      tier: c.tier,
+      specializations: c.specializations,
+      city: c.city,
+      state: c.state,
+      cutoffScore: c.closing,
+      cutoffSource: c.source,
+    })
+  }
+  // Ensure stable order by cutoff desc
+  return list.sort((a, b) => b.cutoffScore - a.cutoffScore)
+})()
 
 export function getDaysUntilExam(targetDate?: Date, excludeWeekends?: boolean): CountdownResult {
   const GATE_2027 = new Date(2027, 1, 6)
@@ -382,47 +538,3 @@ export function calculateTimeAllocation(
     allocatedHours: Math.round(e.allocatedHours * factor * 10) / 10,
   }))
 }
-
-export interface College {
-  id: string
-  name: string
-  tier: 'IIT' | 'NIT' | 'IIIT' | 'GFTI'
-  specializations: string[]
-  city: string
-  state: string
-  cutoffScore: number
-  cutoffSource: string
-}
-
-export const COLLEGES: College[] = [
-  { id: 'iisc-bangalore', name: 'IISc Bangalore', tier: 'IIT', specializations: ['CSA', 'AI'], city: 'Bangalore', state: 'Karnataka', cutoffScore: 860, cutoffSource: 'IISc Admission GATE Cutoff 2024-25' },
-  { id: 'iit-bombay', name: 'IIT Bombay', tier: 'IIT', specializations: ['CSE'], city: 'Mumbai', state: 'Maharashtra', cutoffScore: 850, cutoffSource: 'IIT Bombay minimum GATE cut-off 2024-25' },
-  { id: 'iit-delhi', name: 'IIT Delhi', tier: 'IIT', specializations: ['CSE', 'AI'], city: 'New Delhi', state: 'Delhi', cutoffScore: 830, cutoffSource: 'IIT Delhi CSE shortlisting criteria 2024-25' },
-  { id: 'iit-madras', name: 'IIT Madras', tier: 'IIT', specializations: ['CSE', 'AI', 'Data Science'], city: 'Chennai', state: 'Tamil Nadu', cutoffScore: 810, cutoffSource: 'IIT Madras M.Tech COAP reports 2024-25' },
-  { id: 'iit-kanpur', name: 'IIT Kanpur', tier: 'IIT', specializations: ['CSE'], city: 'Kanpur', state: 'Uttar Pradesh', cutoffScore: 790, cutoffSource: 'COAP institute cut-off reports; median estimate' },
-  { id: 'iit-kharagpur', name: 'IIT Kharagpur', tier: 'IIT', specializations: ['CSE', 'AI'], city: 'Kharagpur', state: 'West Bengal', cutoffScore: 770, cutoffSource: 'COAP institute cut-off reports; median estimate' },
-  { id: 'iit-roorkee', name: 'IIT Roorkee', tier: 'IIT', specializations: ['CSE'], city: 'Roorkee', state: 'Uttarakhand', cutoffScore: 750, cutoffSource: 'COAP institute cut-off reports; median estimate' },
-  { id: 'iit-guwahati', name: 'IIT Guwahati', tier: 'IIT', specializations: ['CSE'], city: 'Guwahati', state: 'Assam', cutoffScore: 720, cutoffSource: 'COAP institute cut-off reports; median estimate' },
-  { id: 'iit-hyderabad', name: 'IIT Hyderabad', tier: 'IIT', specializations: ['CSE', 'AI'], city: 'Hyderabad', state: 'Telangana', cutoffScore: 730, cutoffSource: 'COAP 2024-25 round-wise GATE data' },
-  { id: 'iit-bhu', name: 'IIT (BHU) Varanasi', tier: 'IIT', specializations: ['CSE', 'AI'], city: 'Varanasi', state: 'Uttar Pradesh', cutoffScore: 710, cutoffSource: 'COAP institute cut-off reports; median estimate' },
-  { id: 'iit-jodhpur', name: 'IIT Jodhpur', tier: 'IIT', specializations: ['CSE', 'AI'], city: 'Jodhpur', state: 'Rajasthan', cutoffScore: 660, cutoffSource: 'COAP 2024-25 round-wise GATE data' },
-  { id: 'iit-patna', name: 'IIT Patna', tier: 'IIT', specializations: ['CSE'], city: 'Patna', state: 'Bihar', cutoffScore: 650, cutoffSource: 'COAP institute cut-off reports; median estimate' },
-  { id: 'nit-trichy', name: 'NIT Trichy', tier: 'NIT', specializations: ['CSE'], city: 'Tiruchirappalli', state: 'Tamil Nadu', cutoffScore: 755, cutoffSource: 'CCMT 2024-25 Opening/Closing Scores' },
-  { id: 'nit-warangal', name: 'NIT Warangal', tier: 'NIT', specializations: ['CSE'], city: 'Warangal', state: 'Telangana', cutoffScore: 740, cutoffSource: 'CCMT 2024-25 Opening/Closing Scores' },
-  { id: 'nit-surathkal', name: 'NIT Surathkal', tier: 'NIT', specializations: ['CSE'], city: 'Mangalore', state: 'Karnataka', cutoffScore: 730, cutoffSource: 'CCMT 2024-25 Opening/Closing Scores' },
-  { id: 'nit-calicut', name: 'NIT Calicut', tier: 'NIT', specializations: ['CSE'], city: 'Calicut', state: 'Kerala', cutoffScore: 680, cutoffSource: 'CCMT 2024-25 Opening/Closing Scores' },
-  { id: 'mnnit', name: 'MNNIT Allahabad', tier: 'NIT', specializations: ['CSE'], city: 'Prayagraj', state: 'Uttar Pradesh', cutoffScore: 670, cutoffSource: 'CCMT 2024-25 Opening/Closing Scores' },
-  { id: 'nit-durgapur', name: 'NIT Durgapur', tier: 'NIT', specializations: ['CSE'], city: 'Durgapur', state: 'West Bengal', cutoffScore: 620, cutoffSource: 'CCMT 2024-25 Opening/Closing Scores' },
-  { id: 'nit-kurukshetra', name: 'NIT Kurukshetra', tier: 'NIT', specializations: ['CSE'], city: 'Kurukshetra', state: 'Haryana', cutoffScore: 610, cutoffSource: 'CCMT 2024-25 Opening/Closing Scores' },
-  { id: 'svnit', name: 'SVNIT Surat', tier: 'NIT', specializations: ['CSE'], city: 'Surat', state: 'Gujarat', cutoffScore: 590, cutoffSource: 'CCMT 2024-25 Opening/Closing Scores' },
-  { id: 'nit-patna', name: 'NIT Patna', tier: 'NIT', specializations: ['CSE'], city: 'Patna', state: 'Bihar', cutoffScore: 550, cutoffSource: 'CCMT 2024-25 Opening/Closing Scores' },
-  { id: 'nit-silchar', name: 'NIT Silchar', tier: 'NIT', specializations: ['CSE'], city: 'Silchar', state: 'Assam', cutoffScore: 530, cutoffSource: 'CCMT 2024-25 Opening/Closing Scores' },
-  { id: 'iiit-hyderabad', name: 'IIIT Hyderabad', tier: 'IIIT', specializations: ['CSE', 'AI'], city: 'Hyderabad', state: 'Telangana', cutoffScore: 780, cutoffSource: 'IIIT-H PGEE/GATE Admissions Estimate' },
-  { id: 'iiit-bangalore', name: 'IIIT Bangalore', tier: 'IIIT', specializations: ['CSE', 'AI'], city: 'Bangalore', state: 'Karnataka', cutoffScore: 660, cutoffSource: 'Institute admissions are separate from CCMT' },
-  { id: 'iiit-delhi', name: 'IIIT Delhi', tier: 'IIIT', specializations: ['CSE', 'AI'], city: 'New Delhi', state: 'Delhi', cutoffScore: 640, cutoffSource: 'Institute admissions are separate from CCMT' },
-  { id: 'iiit-allahabad', name: 'IIIT Allahabad', tier: 'IIIT', specializations: ['CSE', 'IT'], city: 'Prayagraj', state: 'Uttar Pradesh', cutoffScore: 580, cutoffSource: 'CCMT 2024-25 Opening/Closing Scores' },
-  { id: 'iiit-gwalior', name: 'ABV-IIITM Gwalior', tier: 'IIIT', specializations: ['CSE'], city: 'Gwalior', state: 'Madhya Pradesh', cutoffScore: 540, cutoffSource: 'CCMT 2024-25 Opening/Closing Scores' },
-  { id: 'iiit-kota', name: 'IIIT Kota', tier: 'IIIT', specializations: ['CSE'], city: 'Kota', state: 'Rajasthan', cutoffScore: 490, cutoffSource: 'CCMT 2024-25 Opening/Closing Scores' },
-  { id: 'iiest-shibpur', name: 'IIEST Shibpur', tier: 'GFTI', specializations: ['CSE'], city: 'Shibpur', state: 'West Bengal', cutoffScore: 530, cutoffSource: 'CCMT 2024-25 Opening/Closing Scores' },
-  { id: 'bit-mesra', name: 'BIT Mesra', tier: 'GFTI', specializations: ['CSE', 'IT'], city: 'Ranchi', state: 'Jharkhand', cutoffScore: 480, cutoffSource: 'CCMT 2024-25 Opening/Closing Scores' },
-]

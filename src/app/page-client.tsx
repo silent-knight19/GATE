@@ -17,33 +17,34 @@ interface SubjectInfo {
 
 const subjectData: SubjectInfo[] = [
   { id: "ga", name: "General Aptitude", shortName: "GA", color: "#6366f1", topics: 3, weightage: 15 },
-  { id: "em", name: "Engineering Mathematics", shortName: "EM", color: "#8b5cf6", topics: 5, weightage: 7 },
-  { id: "dm", name: "Discrete Mathematics", shortName: "DM", color: "#a855f7", topics: 5, weightage: 8 },
-  { id: "dl", name: "Digital Logic", shortName: "DL", color: "#ec4899", topics: 4, weightage: 5 },
-  { id: "coa", name: "Computer Organization", shortName: "COA", color: "#f43f5e", topics: 6, weightage: 10 },
-  { id: "pds", name: "Programming & Data Structures", shortName: "PDS", color: "#f97316", topics: 8, weightage: 12 },
-  { id: "algo", name: "Algorithms", shortName: "Algo.", color: "#eab308", topics: 7, weightage: 8 },
-  { id: "toc", name: "Theory of Computation", shortName: "TOC", color: "#84cc16", topics: 5, weightage: 8 },
-  { id: "cd", name: "Compiler Design", shortName: "CD", color: "#22c55e", topics: 7, weightage: 5 },
-  { id: "os", name: "Operating Systems", shortName: "OS", color: "#14b8a6", topics: 8, weightage: 9 },
-  { id: "db", name: "Databases", shortName: "DB", color: "#06b6d4", topics: 6, weightage: 8 },
-  { id: "cn", name: "Computer Networks", shortName: "CN", color: "#3b82f6", topics: 7, weightage: 10 },
+  { id: "em", name: "Engineering Mathematics", shortName: "EM", color: "#8b5cf6", topics: 5, weightage: 6.6 },
+  { id: "dm", name: "Discrete Mathematics", shortName: "DM", color: "#a855f7", topics: 5, weightage: 6.6 },
+  { id: "dl", name: "Digital Logic", shortName: "DL", color: "#ec4899", topics: 4, weightage: 5.6 },
+  { id: "coa", name: "Computer Organization", shortName: "COA", color: "#f43f5e", topics: 6, weightage: 8.2 },
+  { id: "pds", name: "Programming & Data Structures", shortName: "PDS", color: "#f97316", topics: 8, weightage: 9.2 },
+  { id: "algo", name: "Algorithms", shortName: "Algo.", color: "#eab308", topics: 7, weightage: 7.8 },
+  { id: "toc", name: "Theory of Computation", shortName: "TOC", color: "#84cc16", topics: 5, weightage: 8.4 },
+  { id: "cd", name: "Compiler Design", shortName: "CD", color: "#22c55e", topics: 7, weightage: 6 },
+  { id: "os", name: "Operating Systems", shortName: "OS", color: "#14b8a6", topics: 8, weightage: 7.8 },
+  { id: "db", name: "Databases", shortName: "DB", color: "#06b6d4", topics: 6, weightage: 7 },
+  { id: "cn", name: "Computer Networks", shortName: "CN", color: "#3b82f6", topics: 7, weightage: 8.8 },
 ]
 
 const totalTopics = subjectData.reduce((s, sub) => s + sub.topics, 0)
 const totalSubjects = subjectData.length
 
 const weightageData = [
-  { subject: "Programming & Data Structures", marks: "10–12" },
-  { subject: "Algorithms", marks: "8–10" },
-  { subject: "Computer Networks", marks: "8–10" },
-  { subject: "Operating Systems", marks: "8–10" },
-  { subject: "Databases", marks: "8–10" },
-  { subject: "Computer Organization", marks: "8–10" },
-  { subject: "Theory of Computation", marks: "5–7" },
-  { subject: "Compiler Design", marks: "5–7" },
-  { subject: "Discrete Mathematics", marks: "5–8" },
-  { subject: "Engineering Mathematics", marks: "5–8" },
+  { subject: "Programming & Data Structures", marks: "9.2 avg · 8–10" },
+  { subject: "Computer Networks", marks: "8.8 avg · 6–11" },
+  { subject: "Theory of Computation", marks: "8.4 avg · 7–10" },
+  { subject: "Computer Organization", marks: "8.2 avg · 7–9" },
+  { subject: "Algorithms", marks: "7.8 avg · 6–9" },
+  { subject: "Operating Systems", marks: "7.8 avg · 6–10" },
+  { subject: "Databases", marks: "7.0 avg · 5–8" },
+  { subject: "Engineering Mathematics", marks: "6.6 avg · 4–8" },
+  { subject: "Discrete Mathematics", marks: "6.6 avg · 5–9" },
+  { subject: "Compiler Design", marks: "6.0 avg · 5–8" },
+  { subject: "Digital Logic", marks: "5.6 avg · 5–8" },
   { subject: "General Aptitude", marks: "15" },
 ]
 
@@ -163,7 +164,7 @@ export default function PageClient() {
               </div>
             </div>
             <p className="mt-2 text-right text-xs text-muted-foreground">
-              5-year average &middot; Core subjects (85 marks)
+              5-year average (2022/2023/2026-CS1 verified; 2024/2025 legacy) &middot; Core 85 + GA 15 = 100
             </p>
           </FadeIn>
 
