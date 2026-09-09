@@ -72,66 +72,99 @@ export const SubjectCard = React.memo(function SubjectCard({
         />
       </button>
       {open && (
-        <div className="border-t border-border px-4 py-2">
-          {subject.topics.map((topic) => {
-            const status = topicStatuses[topic.id] || "not_started"
+        <div className="border-t border-border px-3 py-2 space-y-3">
+          {Object.entries(
+            subject.topics.reduce<Record<string, typeof subject.topics>>((acc, topic) => {
+              const chapter = topic.chapter || "General"
+              if (!acc[chapter]) acc[chapter] = []
+              acc[chapter].push(topic)
+              return acc
+            }, {})
+          ).map(([chapter, topics]) => {
+            const completedCount = topics.filter(
+              (t) => topicStatuses[t.id] === "completed" || topicStatuses[t.id] === "mastered"
+            ).length
+            const isChapterComplete = completedCount === topics.length
+
             return (
-              <button
-                key={topic.id}
-                onClick={() => onCycleTopic(topic.id)}
-                className="flex w-full items-center gap-2 rounded-lg border border-transparent px-2 py-1.5 text-left text-sm transition-[transform,border-color,background-color] hover:border-border hover:bg-muted/50 active:scale-[0.99]"
-              >
-                <div
-                  className={`size-2 shrink-0 rounded-full ${statusColors[status] || "bg-gray-500"}`}
-                />
-                <span className="flex-1 truncate text-foreground">
-                  {topic.name}
-                </span>
-                <span className="font-mono text-xs tabular-nums text-muted-foreground">
-                  {topic.avgMarks}
-                </span>
-                <span
-                  className={`rounded px-1 py-[1px] text-[10px] font-medium ${
-                    topic.frequency === "very_high"
-                      ? "text-orange-500 bg-orange-500/10"
-                      : topic.frequency === "high"
-                        ? "text-amber-500 bg-amber-500/10"
-                        : topic.frequency === "medium"
-                          ? "text-blue-500 bg-blue-500/10"
-                          : "text-gray-500 bg-gray-500/10"
-                  }`}
-                >
-                  {topic.frequency === "very_high"
-                    ? "VH"
-                    : topic.frequency === "high"
-                      ? "H"
-                      : topic.frequency === "medium"
-                        ? "M"
-                        : "L"}
-                </span>
-                <span className="font-mono text-xs tabular-nums text-muted-foreground">
-                  {topic.hours}h
-                </span>
-                <span
-                  className={`rounded px-1 py-[1px] text-[10px] font-medium uppercase tracking-wider ${
-                    status === "not_started"
-                      ? "text-gray-500 bg-gray-500/10"
-                      : status === "in_progress"
-                        ? "text-blue-500 bg-blue-500/10"
-                        : status === "completed"
-                          ? "text-green-500 bg-green-500/10"
-                          : "text-purple-500 bg-purple-500/10"
-                  }`}
-                >
-                  {status === "not_started"
-                    ? "NS"
-                    : status === "in_progress"
-                      ? "IP"
-                      : status === "completed"
-                        ? "Ok"
-                        : "M"}
-                </span>
-              </button>
+              <div key={chapter} className="space-y-1">
+                <div className="flex items-center justify-between px-2 pt-1 text-[11px] font-medium text-muted-foreground">
+                  <span className="font-semibold tracking-wide uppercase text-[10px] text-foreground/70">
+                    {chapter}
+                  </span>
+                  <span
+                    className={`font-mono text-[10px] tabular-nums ${
+                      isChapterComplete ? "text-emerald-500 font-semibold" : "text-muted-foreground"
+                    }`}
+                  >
+                    {completedCount}/{topics.length}
+                  </span>
+                </div>
+
+                <div className="space-y-0.5">
+                  {topics.map((topic) => {
+                    const status = topicStatuses[topic.id] || "not_started"
+                    return (
+                      <button
+                        key={topic.id}
+                        onClick={() => onCycleTopic(topic.id)}
+                        className="flex w-full items-center gap-2 rounded-lg border border-transparent px-2 py-1.5 text-left text-sm transition-[transform,border-color,background-color] hover:border-border hover:bg-muted/50 active:scale-[0.99]"
+                      >
+                        <div
+                          className={`size-2 shrink-0 rounded-full ${statusColors[status] || "bg-gray-500"}`}
+                        />
+                        <span className="flex-1 truncate text-xs text-foreground" title={topic.name}>
+                          {topic.name}
+                        </span>
+                        <span className="font-mono text-[11px] tabular-nums text-muted-foreground">
+                          {topic.avgMarks}m
+                        </span>
+                        <span
+                          className={`rounded px-1 py-[1px] text-[9px] font-medium ${
+                            topic.frequency === "very_high"
+                              ? "text-orange-500 bg-orange-500/10"
+                              : topic.frequency === "high"
+                                ? "text-amber-500 bg-amber-500/10"
+                                : topic.frequency === "medium"
+                                  ? "text-blue-500 bg-blue-500/10"
+                                  : "text-gray-500 bg-gray-500/10"
+                          }`}
+                        >
+                          {topic.frequency === "very_high"
+                            ? "VH"
+                            : topic.frequency === "high"
+                              ? "H"
+                              : topic.frequency === "medium"
+                                ? "M"
+                                : "L"}
+                        </span>
+                        <span className="font-mono text-[11px] tabular-nums text-muted-foreground">
+                          {topic.hours}h
+                        </span>
+                        <span
+                          className={`rounded px-1.5 py-[1px] text-[9px] font-semibold uppercase tracking-wider ${
+                            status === "not_started"
+                              ? "text-gray-400 bg-gray-500/10"
+                              : status === "in_progress"
+                                ? "text-blue-500 bg-blue-500/10"
+                                : status === "completed"
+                                  ? "text-green-500 bg-green-500/10"
+                                  : "text-purple-500 bg-purple-500/10"
+                          }`}
+                        >
+                          {status === "not_started"
+                            ? "NS"
+                            : status === "in_progress"
+                              ? "IP"
+                              : status === "completed"
+                                ? "Done"
+                                : "Master"}
+                        </span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
             )
           })}
         </div>

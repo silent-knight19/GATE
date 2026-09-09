@@ -282,7 +282,22 @@ export function AddTaskModal({
                 className="w-full bg-white/[0.03] hover:bg-white/[0.06] border border-transparent hover:border-white/[0.05] focus:border-[#3b7ede] focus:bg-white/[0.02] rounded-xl px-3 py-2.5 text-sm text-gray-200 outline-none transition-all cursor-pointer appearance-none disabled:opacity-50"
               >
                 <option value="" className="bg-black">None</option>
-                {topics.map(t => <option key={t.id} value={t.id} className="bg-black">{t.name}</option>)}
+                {Object.entries(
+                  topics.reduce<Record<string, typeof topics>>((acc, t) => {
+                    const chapter = t.chapter || "General"
+                    if (!acc[chapter]) acc[chapter] = []
+                    acc[chapter].push(t)
+                    return acc
+                  }, {})
+                ).map(([chapter, chTopics]) => (
+                  <optgroup key={chapter} label={chapter} className="bg-black text-gray-400 font-semibold">
+                    {chTopics.map((t) => (
+                      <option key={t.id} value={t.id} className="bg-black text-gray-200 font-normal">
+                        {t.name}
+                      </option>
+                    ))}
+                  </optgroup>
+                ))}
               </select>
             </div>
 

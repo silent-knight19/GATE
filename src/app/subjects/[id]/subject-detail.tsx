@@ -241,32 +241,58 @@ export function SubjectDetail({ subject }: { subject: Subject }) {
         </div>
       )}
 
-      {/* Topic progression */}
-      <div>
-        <div className="mb-2 flex items-center gap-2">
+      {/* Topic progression by Chapter */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-2">
           <Clock className="size-4 text-muted-foreground" />
-          <span className="text-sm font-medium">Topic Details</span>
+          <span className="text-sm font-medium">Topic Details by Chapter</span>
         </div>
-        <div className="space-y-0.5">
-          {topics.map((t) => {
+
+        {Object.entries(
+          topics.reduce<Record<string, typeof topics>>((acc, t) => {
             const topicData = subject.topics.find((st) => st.id === t.id)
-            return (
-              <TopicRow
-                key={t.id}
-                topic={{
-                  id: t.id,
-                  name: t.name,
-                  status: t.status,
-                  avgMarks: topicData?.avgMarks ?? 0,
-                  frequency: topicData?.frequency ?? "medium",
-                  hours: topicData?.hours ?? 0,
-                  prerequisites: topicData?.prerequisites ?? [],
-                }}
-                onCycle={() => cycleTopicStatus(t.id)}
-              />
-            )
-          })}
-        </div>
+            const chapter = topicData?.chapter || "General"
+            if (!acc[chapter]) acc[chapter] = []
+            acc[chapter].push(t)
+            return acc
+          }, {})
+        ).map(([chapter, chapterTopics]) => {
+          const compCount = chapterTopics.filter((t) => t.status === "completed" || t.status === "mastered").length
+          const isChapterComplete = compCount === chapterTopics.length
+
+          return (
+            <div key={chapter} className="rounded-xl border border-border bg-card/60 p-3.5 space-y-2.5">
+              <div className="flex items-center justify-between border-b border-border/50 pb-2">
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-foreground/80">
+                  {chapter}
+                </h3>
+                <span className={`font-mono text-xs tabular-nums ${isChapterComplete ? "text-emerald-500 font-semibold" : "text-muted-foreground"}`}>
+                  {compCount}/{chapterTopics.length} completed
+                </span>
+              </div>
+              <div className="space-y-0.5">
+                {chapterTopics.map((t) => {
+                  const topicData = subject.topics.find((st) => st.id === t.id)
+                  return (
+                    <TopicRow
+                      key={t.id}
+                      topic={{
+                        id: t.id,
+                        name: t.name,
+                        status: t.status,
+                        avgMarks: topicData?.avgMarks ?? 0,
+                        frequency: topicData?.frequency ?? "medium",
+                        hours: topicData?.hours ?? 0,
+                        prerequisites: topicData?.prerequisites ?? [],
+                      }}
+                      onCycle={() => cycleTopicStatus(t.id)}
+                    />
+                  )
+                })}
+              </div>
+            </div>
+          )
+        })}
       </div>
     </div>
   )

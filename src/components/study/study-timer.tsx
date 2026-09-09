@@ -8,6 +8,8 @@ import {
   SelectValue,
   SelectContent,
   SelectItem,
+  SelectGroup,
+  SelectLabel,
 } from "@/components/ui/select"
 import { useAppStore } from "@/lib/store"
 import { syllabus } from "@/lib/data/syllabus"
@@ -154,13 +156,13 @@ export function StudyTimer() {
             setLocalTopicId("")
           }}
         >
-          <SelectTrigger className="flex-1">
+          <SelectTrigger className="flex-1 min-w-0">
             <SelectValue placeholder="Subject" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent align="start" side="bottom" className="max-h-[320px] min-w-[220px]">
             {syllabus.map((s) => (
               <SelectItem key={s.id} value={s.id}>
-                {s.shortName}
+                {s.name}
               </SelectItem>
             ))}
           </SelectContent>
@@ -170,14 +172,33 @@ export function StudyTimer() {
           onValueChange={(v) => setLocalTopicId(v ?? "")}
           disabled={!localSubjectId}
         >
-          <SelectTrigger className="flex-1">
+          <SelectTrigger className="flex-1 min-w-0">
             <SelectValue placeholder={localSubjectId ? "Topic" : "Select subject first"} />
           </SelectTrigger>
-          <SelectContent>
-            {topics.map((t) => (
-              <SelectItem key={t.id} value={t.id}>
-                {t.name}
-              </SelectItem>
+          <SelectContent
+            align="end"
+            side="bottom"
+            sideOffset={4}
+            className="max-h-[360px] min-w-[320px] sm:min-w-[440px] max-w-[min(92vw,540px)]"
+          >
+            {Object.entries(
+              topics.reduce<Record<string, typeof topics>>((acc, t) => {
+                const chapter = t.chapter || "General"
+                if (!acc[chapter]) acc[chapter] = []
+                acc[chapter].push(t)
+                return acc
+              }, {})
+            ).map(([chapter, chapterTopics]) => (
+              <SelectGroup key={chapter}>
+                <SelectLabel className="font-semibold text-[11px] text-muted-foreground px-2 py-1.5 uppercase tracking-wider">
+                  {chapter}
+                </SelectLabel>
+                {chapterTopics.map((t) => (
+                  <SelectItem key={t.id} value={t.id}>
+                    {t.name}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
             ))}
           </SelectContent>
         </Select>
